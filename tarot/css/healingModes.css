@@ -1,0 +1,287 @@
+/**
+ * Healing Modes CSS
+ * Styles for breathing therapy, meditation guide, and late-night universe mode
+ */
+
+/* Breathing Therapy Page */
+#page-breathing {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: none;
+    overflow: hidden;
+}
+
+#page-breathing.active {
+    display: block;
+}
+
+#breathing-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.breathing-controls {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+/* Meditation Guide Page */
+#page-meditation {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: radial-gradient(ellipse at center, #0f0a1e 0%, #0a0818 50%, #050310 100%);
+    display: none;
+}
+
+#page-meditation.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.meditation-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.meditation-text-container {
+    width: 100%;
+    height: 70vh;
+    overflow-y: auto;
+    padding: 30px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(123, 79, 191, 0.3) transparent;
+}
+
+.meditation-text-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.meditation-text-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.meditation-text-container::-webkit-scrollbar-thumb {
+    background-color: rgba(123, 79, 191, 0.3);
+    border-radius: 3px;
+}
+
+.meditation-paragraph {
+    font-size: 20px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 30px;
+    text-align: center;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px rgba(123, 79, 191, 0.5);
+}
+
+.meditation-controls {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Late-Night Universe Page */
+#page-universe {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: none;
+    overflow: hidden;
+}
+
+#page-universe.active {
+    display: block;
+}
+
+#universe-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.universe-controls {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+/* Combined Healing Page */
+#page-combined {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: none;
+    overflow: hidden;
+}
+
+#page-combined.active {
+    display: block;
+}
+
+#combined-breathing-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.combined-container {
+    position: relative;
+    z-index: 5;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.combined-container .meditation-text-container {
+    pointer-events: auto;
+    max-width: 700px;
+    height: 50vh;
+    margin-top: -100px;
+}
+
+.combined-controls {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    pointer-events: auto;
+}
+
+/* Healing Feature Cards */
+.healing-feature {
+    position: relative;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.2);
+    border-radius: 16px;
+    padding: 30px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    overflow: hidden;
+}
+
+.healing-feature::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(123, 79, 191, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.healing-feature:hover::before,
+.healing-feature.active::before {
+    opacity: 1;
+}
+
+.healing-feature:hover,
+.healing-feature.active {
+    border-color: rgba(123, 79, 191, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(123, 79, 191, 0.2);
+}
+
+.healing-feature-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 10px rgba(212, 168, 67, 0.5));
+}
+
+.healing-feature-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #d4a843;
+    margin-bottom: 8px;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.3);
+}
+
+.healing-feature-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Button Styles for Healing Controls */
+.btn-breathing-stop,
+.btn-meditation-stop,
+.btn-universe-stop,
+.btn-combined-stop {
+    position: relative;
+    padding: 12px 32px;
+    font-size: 16px;
+    color: #fff;
+    background: rgba(123, 79, 191, 0.3);
+    border: 1px solid rgba(123, 79, 191, 0.5);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: "Microsoft YaHei", sans-serif;
+}
+
+.btn-breathing-stop:hover,
+.btn-meditation-stop:hover,
+.btn-universe-stop:hover,
+.btn-combined-stop:hover {
+    background: rgba(123, 79, 191, 0.5);
+    box-shadow: 0 0 20px rgba(123, 79, 191, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .meditation-paragraph {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+    
+    .healing-feature {
+        padding: 20px 15px;
+    }
+    
+    .healing-feature-icon {
+        font-size: 36px;
+    }
+    
+    .healing-feature-title {
+        font-size: 16px;
+    }
+    
+    .healing-feature-desc {
+        font-size: 12px;
+    }
+}

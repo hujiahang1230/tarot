@@ -1,0 +1,84 @@
+/* MBTI 画像展示区域 */
+.portrait-section {
+    margin-top: 50px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(123, 79, 191, 0.3);
+}
+
+.portrait-title {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 6px;
+    color: rgba(212, 168, 67, 0.9);
+    text-align: center;
+    margin-bottom: 40px;
+    text-shadow: 0 0 20px rgba(212, 168, 67, 0.3);
+}
+
+.portrait-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.portrait-item {
+    margin-bottom: 35px;
+    padding: 25px;
+    background: rgba(20, 15, 40, 0.5);
+    border-left: 3px solid rgba(123, 79, 191, 0.5);
+    border-radius: 0 12px 12px 0;
+    transition: all 0.3s ease;
+}
+
+.portrait-item:hover {
+    background: rgba(20, 15, 40, 0.7);
+    border-left-color: rgba(212, 168, 67, 0.8);
+    transform: translateX(5px);
+}
+
+.portrait-item-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #d4a843;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.portrait-item-label::before {
+    content: '✦';
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.portrait-item-text {
+    font-size: 15px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.5px;
+}
+
+#btn-start-healing-from-portrait {
+    margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+    .portrait-title {
+        font-size: 22px;
+        letter-spacing: 4px;
+    }
+    
+    .portrait-item {
+        padding: 18px;
+    }
+    
+    .portrait-item-label {
+        font-size: 14px;
+    }
+    
+    .portrait-item-text {
+        font-size: 14px;
+        line-height: 1.7;
+    }
+}

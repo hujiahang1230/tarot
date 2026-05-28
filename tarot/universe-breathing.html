@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宇宙呼吸疗愈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #050310;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            cursor: none;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 168, 67, 0.6) 0%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            transition: transform 0.1s ease;
+        }
+
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .breath-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 30px rgba(123, 79, 191, 0.8), 0 0 60px rgba(123, 79, 191, 0.4);
+            letter-spacing: 8px;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+        }
+
+        .breath-text.visible {
+            opacity: 1;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            pointer-events: auto;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: rgba(123, 79, 191, 0.2);
+            border: 1px solid rgba(123, 79, 191, 0.4);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-family: inherit;
+            letter-spacing: 2px;
+        }
+
+        .control-btn:hover {
+            background: rgba(123, 79, 191, 0.4);
+            box-shadow: 0 0 20px rgba(123, 79, 191, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: rgba(123, 79, 191, 0.5);
+            border-color: rgba(212, 168, 67, 0.6);
+            color: #d4a843;
+        }
+
+        .volume-control {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            pointer-events: auto;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .volume-control.visible {
+            opacity: 1;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 150px;
+            height: 4px;
+            background: rgba(123, 79, 191, 0.3);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #d4a843;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+        }
+
+        .mode-selector {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            background: rgba(20, 15, 40, 0.6);
+            border: 1px solid rgba(123, 79, 191, 0.3);
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            letter-spacing: 1px;
+        }
+
+        .mode-btn:hover, .mode-btn.active {
+            background: rgba(123, 79, 191, 0.4);
+            border-color: rgba(212, 168, 67, 0.5);
+            color: #d4a843;
+        }
+
+        .title {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 6px;
+            text-shadow: 0 0 20px rgba(123, 79, 191, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .breath-text {
+                font-size: 24px;
+                letter-spacing: 4px;
+            }
+            
+            .controls {
+                bottom: 20px;
+                gap: 10px;
+            }
+            
+            .control-btn {
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+            
+            .mode-selector {
+                top: 20px;
+                gap: 10px;
+            }
+            
+            .mode-btn {
+                padding: 6px 12px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="universe-canvas"></canvas>
+    <div class="cursor-glow" id="cursor-glow"></div>
+    
+    <div class="ui-overlay">
+        <div class="title">宇宙呼吸疗愈</div>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="4-2-6">4-2-6 放松</button>
+            <button class="mode-btn" data-mode="4-4-4">4-4-4 平衡</button>
+            <button class="mode-btn" data-mode="4-7-8">4-7-8 深度</button>
+        </div>
+        
+        <div class="breath-text" id="breath-text"></div>
+        
+        <div class="volume-control" id="volume-control">
+            <span style="color: rgba(255,255,255,0.6); font-size: 12px;">音量</span>
+            <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="50">
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" id="btn-start">开始</button>
+            <button class="control-btn" id="btn-pause">暂停</button>
+            <button class="control-btn" id="btn-volume">音量</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 宇宙呼吸疗愈系统
+         * 包含：Canvas粒子系统、呼吸动画、音频系统、交互控制
+         */
+
+        class UniverseBreathingSystem {
+            constructor() {
+                this.canvas = document.getElementById('universe-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.cursorGlow = document.getElementById('cursor-glow');
+                this.breathText = document.getElementById('breath-text');
+                this.volumeControl = document.getElementById('volume-control');
+                this.volumeSlider = document.getElementById('volume-slider');
+                
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.centerX = this.width / 2;
+                this.centerY = this.height / 2;
+                
+                this.mouse = { x: this.centerX, y: this.centerY, targetX: this.centerX, targetY: this.centerY };
+                this.parallax = { x: 0, y: 0 };
+                
+                this.isActive = false;
+                this.isPaused = false;
+                this.time = 0;
+                this.lastFrameTime = 0;
+                
+                this.breathPhase = 'idle';
+                this.breathProgress = 0;
+                this.breathTimings = { inhale: 4000, hold: 2000, exhale: 6000 };
+                this.lastPhaseChange = 0;
+                this.currentRadius = 80;
+                this.minRadius = 80;
+                this.maxRadius = 160;
+                this.pulseIntensity = 0;
+                this.backgroundBrightness = 0;
+                
+                this.stars = [];
+                this.nebulas = [];
+                this.fogParticles = [];
+                this.breathParticles = [];
+                this.lightRays = [];
+                this.orbitParticles = [];
+                
+                this.audioContext = null;
+                this.audioEnabled = false;
+                this.volume = 0.5;
+                this.oscillators = [];
+                this.gainNodes = [];
+                
+                this.init();
+            }
+            
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                window.addEventListener('mouseleave', () => {
+                    this.mouse.x = -1000;
+                    this.mouse.y = -1000;
+                });
+                
+                this.createStars(300);
+                this.createNebulas(8);
+                this.createFogParticles(20);
+                this.createBreathParticles(100);
+                this.createLightRays(5);
+                this.createOrbitParticles(24);
+                
+                this.bindControls();
+                this.animate(0);
+            }
+            
+            resize() {
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+                this.centerX = this.width / 2;
+                this.centerY = this.height / 2;
+            }
+            
+            handleMouseMove(e) {
+                this.mouse.targetX = e.clientX;
+                this.mouse.targetY = e.clientY;
+                this.cursorGlow.style.left = e.clientX + 'px';
+                this.cursorGlow.style.top = e.clientY + 'px';
+            }
+            
+            bindControls() {
+                document.getElementById('btn-start').addEventListener('click', () => this.start());
+                document.getElementById('btn-pause').addEventListener('click', () => this.togglePause());
+                document.getElementById('btn-volume').addEventListener('click', () => this.toggleVolume());
+                this.volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value / 100));
+                
+                document.querySelectorAll('.mode-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.setBreathMode(btn.dataset.mode);
+                    });
+                });
+            }
+            
+            setBreathMode(mode) {
+                switch (mode) {
+                    case '4-2-6':
+                        this.breathTimings = { inhale: 4000, hold: 2000, exhale: 6000 };
+                        break;
+                    case '4-4-4':
+                        this.breathTimings = { inhale: 4000, hold: 4000, exhale: 4000 };
+                        break;
+                    case '4-7-8':
+                        this.breathTimings = { inhale: 4000, hold: 7000, exhale: 8000 };
+                        break;
+                }
+            }
+            
+            start() {
+                if (this.isActive) return;
+                this.isActive = true;
+                this.isPaused = false;
+                this.breathPhase = 'inhale';
+                this.lastPhaseChange = performance.now();
+                this.breathProgress = 0;
+                this.initAudio();
+                this.updateBreathText();
+                document.getElementById('btn-start').textContent = '运行中';
+                document.getElementById('btn-start').classList.add('active');
+            }
+            
+            togglePause() {
+                if (!this.isActive) return;
+                this.isPaused = !this.isPaused;
+                document.getElementById('btn-pause').textContent = this.isPaused ? '继续' : '暂停';
+                document.getElementById('btn-pause').classList.toggle('active', this.isPaused);
+                if (!this.isPaused) {
+                    this.lastPhaseChange = performance.now() - (this.breathProgress * this.getCurrentPhaseDuration());
+                }
+            }
+            
+            toggleVolume() {
+                this.volumeControl.classList.toggle('visible');
+            }
+            
+            setVolume(value) {
+                this.volume = value;
+                if (this.gainNodes.length > 0) {
+                    this.gainNodes.forEach(gain => {
+                        gain.gain.value = 0.02 * this.volume;
+                    });
+                }
+            }
+            
+            initAudio() {
+                if (this.audioEnabled) return;
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.audioEnabled = true;
+                    
+                    const frequencies = [82.5, 110, 165, 220, 330];
+                    frequencies.forEach((freq, i) => {
+                        const osc = this.audioContext.createOscillator();
+                        const gain = this.audioContext.createGain();
+                        osc.frequency.value = freq;
+                        osc.type = 'sine';
+                        gain.gain.value = 0.02 * this.volume;
+                        osc.connect(gain);
+                        gain.connect(this.audioContext.destination);
+                        osc.start();
+                        this.oscillators.push(osc);
+                        this.gainNodes.push(gain);
+                    });
+                } catch (e) {
+                    console.warn('音频初始化失败:', e);
+                }
+            }
+            
+            stopAudio() {
+                this.oscillators.forEach(osc => osc.stop());
+                this.oscillators = [];
+                this.gainNodes = [];
+                this.audioEnabled = false;
+            }
+            
+            getCurrentPhaseDuration() {
+                return this.breathTimings[this.breathPhase] || 0;
+            }
+            
+            updateBreathPhase() {
+                if (!this.isActive || this.isPaused) return;
+                
+                const now = performance.now();
+                const elapsed = now - this.lastPhaseChange;
+                const duration = this.getCurrentPhaseDuration();
+                
+                if (elapsed >= duration) {
+                    this.lastPhaseChange = now;
+                    this.breathProgress = 0;
+                    
+                    if (this.breathPhase === 'inhale') {
+                        this.breathPhase = 'hold';
+                    } else if (this.breathPhase === 'hold') {
+                        this.breathPhase = 'exhale';
+                    } else {
+                        this.breathPhase = 'inhale';
+                    }
+                    this.updateBreathText();
+                } else {
+                    this.breathProgress = elapsed / duration;
+                }
+            }
+            
+            updateBreathText() {
+                const texts = {
+                    inhale: '吸 气',
+                    hold: '停 留',
+                    exhale: '呼 气'
+                };
+                this.breathText.textContent = texts[this.breathPhase] || '';
+                this.breathText.classList.add('visible');
+            }
+            
+            updateBreathRadius() {
+                if (this.breathPhase === 'inhale') {
+                    this.currentRadius = this.minRadius + (this.maxRadius - this.minRadius) * this.easeInOut(this.breathProgress);
+                    this.pulseIntensity = this.breathProgress;
+                } else if (this.breathPhase === 'exhale') {
+                    this.currentRadius = this.maxRadius - (this.maxRadius - this.minRadius) * this.easeInOut(this.breathProgress);
+                    this.pulseIntensity = 1 - this.breathProgress;
+                } else {
+                    this.pulseIntensity = 1;
+                }
+                this.backgroundBrightness = this.pulseIntensity * 0.15;
+            }
+            
+            updateParallax() {
+                this.mouse.x += (this.mouse.targetX - this.mouse.x) * 0.05;
+                this.mouse.y += (this.mouse.targetY - this.mouse.y) * 0.05;
+                this.parallax.x = (this.mouse.x / this.width - 0.5) * 30;
+                this.parallax.y = (this.mouse.y / this.height - 0.5) * 30;
+            }
+            
+            updateStars() {
+                this.stars.forEach(star => {
+                    star.phase += star.twinkleSpeed;
+                    const breathSync = Math.sin(this.time * 0.001) * 0.2;
+                    star.opacity = star.baseOpacity + breathSync * this.pulseIntensity;
+                    star.x += star.speedX + this.parallax.x * star.parallaxFactor * 0.1;
+                    star.y += star.speedY + this.parallax.y * star.parallaxFactor * 0.1;
+                    
+                    if (star.x < 0) star.x = this.width;
+                    if (star.x > this.width) star.x = 0;
+                    if (star.y < 0) star.y = this.height;
+                    if (star.y > this.height) star.y = 0;
+                });
+            }
+            
+            updateNebulas() {
+                this.nebulas.forEach(nebula => {
+                    nebula.x += nebula.speedX + this.parallax.x * 0.05;
+                    nebula.y += nebula.speedY + this.parallax.y * 0.05;
+                    nebula.phase += nebula.pulseSpeed;
+                    
+                    if (nebula.x < -nebula.radius * 2) nebula.x = this.width + nebula.radius * 2;
+                    if (nebula.x > this.width + nebula.radius * 2) nebula.x = -nebula.radius * 2;
+                    if (nebula.y < -nebula.radius * 2) nebula.y = this.height + nebula.radius * 2;
+                    if (nebula.y > this.height + nebula.radius * 2) nebula.y = -nebula.radius * 2;
+                });
+            }
+            
+            updateFogParticles() {
+                this.fogParticles.forEach(fog => {
+                    fog.x += fog.speedX;
+                    fog.y += fog.speedY;
+                    fog.phase += fog.pulseSpeed;
+                    
+                    if (fog.x < -fog.radius) fog.x = this.width + fog.radius;
+                    if (fog.x > this.width + fog.radius) fog.x = -fog.radius;
+                    if (fog.y < -fog.radius) fog.y = this.height + fog.radius;
+                    if (fog.y > this.height + fog.radius) fog.y = -fog.radius;
+                });
+            }
+            
+            updateBreathParticles() {
+                this.breathParticles.forEach(p => {
+                    p.angle += p.speed + this.pulseIntensity * 0.002;
+                    p.phase += 0.01;
+                    p.distance = this.currentRadius + Math.sin(p.phase) * 20 + this.pulseIntensity * 30;
+                    p.opacity = 0.3 + this.pulseIntensity * 0.5;
+                });
+            }
+            
+            updateOrbitParticles() {
+                this.orbitParticles.forEach((p, i) => {
+                    p.angle += p.speed + this.pulseIntensity * 0.001;
+                    p.distance = this.currentRadius + 40 + i * 3;
+                    p.opacity = 0.4 + this.pulseIntensity * 0.4;
+                });
+            }
+            
+            createStars(count) {
+                this.stars = [];
+                for (let i = 0; i < count; i++) {
+                    this.stars.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        size: Math.random() * 2 + 0.3,
+                        baseOpacity: Math.random() * 0.6 + 0.2,
+                        opacity: 0,
+                        twinkleSpeed: Math.random() * 0.008 + 0.003,
+                        phase: Math.random() * Math.PI * 2,
+                        color: this.getStarColor(),
+                        speedX: (Math.random() - 0.5) * 0.05,
+                        speedY: (Math.random() - 0.5) * 0.03,
+                        parallaxFactor: Math.random() * 0.5 + 0.1
+                    });
+                }
+            }
+            
+            getStarColor() {
+                const colors = [
+                    '100, 150, 255',
+                    '150, 180, 255',
+                    '200, 220, 255',
+                    '180, 200, 255',
+                    '212, 168, 67',
+                    '123, 79, 191'
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            createNebulas(count) {
+                this.nebulas = [];
+                const colors = [
+                    'rgba(30, 60, 120, 0.04)',
+                    'rgba(40, 80, 160, 0.05)',
+                    'rgba(50, 100, 180, 0.03)',
+                    'rgba(60, 120, 200, 0.04)',
+                    'rgba(123, 79, 191, 0.05)',
+                    'rgba(20, 50, 100, 0.06)'
+                ];
+                
+                for (let i = 0; i < count; i++) {
+                    this.nebulas.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        radius: Math.random() * 300 + 200,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        speedX: (Math.random() - 0.5) * 0.08,
+                        speedY: (Math.random() - 0.5) * 0.05,
+                        phase: Math.random() * Math.PI * 2,
+                        pulseSpeed: Math.random() * 0.002 + 0.001
+                    });
+                }
+            }
+            
+            createFogParticles(count) {
+                this.fogParticles = [];
+                for (let i = 0; i < count; i++) {
+                    this.fogParticles.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        radius: Math.random() * 200 + 100,
+                        opacity: Math.random() * 0.08 + 0.02,
+                        speedX: (Math.random() - 0.5) * 0.3,
+                        speedY: (Math.random() - 0.5) * 0.2,
+                        phase: Math.random() * Math.PI * 2,
+                        pulseSpeed: Math.random() * 0.005 + 0.002
+                    });
+                }
+            }
+            
+            createBreathParticles(count) {
+                this.breathParticles = [];
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.2;
+                    this.breathParticles.push({
+                        angle: angle,
+                        distance: this.currentRadius + Math.random() * 40 - 20,
+                        size: Math.random() * 2 + 0.5,
+                        opacity: Math.random() * 0.5 + 0.3,
+                        speed: (Math.random() - 0.5) * 0.002,
+                        color: Math.random() > 0.5 ? '123, 79, 191' : '212, 168, 67',
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+            
+            createLightRays(count) {
+                this.lightRays = [];
+                for (let i = 0; i < count; i++) {
+                    this.lightRays.push({
+                        angle: (Math.PI * 2 / count) * i,
+                        length: Math.random() * 100 + 50,
+                        opacity: 0,
+                        speed: 0.001,
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+            
+            createOrbitParticles(count) {
+                this.orbitParticles = [];
+                for (let i = 0; i < count; i++) {
+                    this.orbitParticles.push({
+                        angle: (Math.PI * 2 / count) * i,
+                        distance: this.currentRadius + 40 + i * 3,
+                        size: Math.random() * 1.5 + 0.5,
+                        opacity: 0.4,
+                        speed: 0.002 + Math.random() * 0.001,
+                        color: Math.random() > 0.5 ? '123, 79, 191' : '212, 168, 67'
+                    });
+                }
+            }
+            
+            draw() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                this.drawBackground();
+                this.drawNebulas();
+                this.drawFog();
+                this.drawStars();
+                this.drawLightRays();
+                this.drawBreathBall();
+                this.drawBreathParticles();
+                this.drawOrbitParticles();
+                this.drawVignette();
+                this.drawMouseGlow();
+            }
+            
+            drawBackground() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.centerX + this.parallax.x * 0.5,
+                    this.centerY + this.parallax.y * 0.5,
+                    0,
+                    this.centerX,
+                    this.centerY,
+                    this.width * 0.8
+                );
+                gradient.addColorStop(0, `rgba(15, 10, 30, ${1 - this.backgroundBrightness})`);
+                gradient.addColorStop(0.4, `rgba(10, 8, 24, ${1 - this.backgroundBrightness * 0.8})`);
+                gradient.addColorStop(0.7, `rgba(8, 6, 20, ${1 - this.backgroundBrightness * 0.6})`);
+                gradient.addColorStop(1, `rgba(5, 3, 16, ${1 - this.backgroundBrightness * 0.4})`);
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+            }
+            
+            drawStars() {
+                this.stars.forEach(star => {
+                    const twinkle = Math.sin(star.phase) * 0.3 + 0.7;
+                    const opacity = star.opacity * twinkle;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(${star.color}, ${opacity})`;
+                    this.ctx.fill();
+                    
+                    if (star.size > 1.5) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(star.x, star.y, star.size * 2.5, 0, Math.PI * 2);
+                        this.ctx.fillStyle = `rgba(${star.color}, ${opacity * 0.15})`;
+                        this.ctx.fill();
+                    }
+                });
+            }
+            
+            drawNebulas() {
+                this.nebulas.forEach(nebula => {
+                    const pulse = Math.sin(this.time * 0.001 + nebula.phase) * 0.5 + 0.5;
+                    const radius = nebula.radius * (1 + pulse * 0.08);
+                    
+                    const gradient = this.ctx.createRadialGradient(nebula.x, nebula.y, 0, nebula.x, nebula.y, radius);
+                    gradient.addColorStop(0, nebula.color);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(nebula.x - radius, nebula.y - radius, radius * 2, radius * 2);
+                });
+            }
+            
+            drawFog() {
+                this.fogParticles.forEach(fog => {
+                    const pulse = Math.sin(this.time * fog.pulseSpeed + fog.phase) * 0.5 + 0.5;
+                    const opacity = fog.opacity * pulse;
+                    
+                    const gradient = this.ctx.createRadialGradient(fog.x, fog.y, 0, fog.x, fog.y, fog.radius);
+                    gradient.addColorStop(0, `rgba(100, 80, 140, ${opacity})`);
+                    gradient.addColorStop(0.5, `rgba(60, 40, 100, ${opacity * 0.5})`);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(fog.x - fog.radius, fog.y - fog.radius, fog.radius * 2, fog.radius * 2);
+                });
+            }
+            
+            drawBreathBall() {
+                const r = 123, g = 79, b = 191;
+                
+                this.ctx.save();
+                this.ctx.translate(this.centerX, this.centerY);
+                
+                for (let i = 5; i > 0; i--) {
+                    const radius = this.currentRadius + i * 12;
+                    const opacity = 0.03 * (6 - i) * this.pulseIntensity;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                    this.ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+                }
+                
+                const mainGradient = this.ctx.createRadialGradient(0, 0, this.currentRadius - 15, 0, 0, this.currentRadius + 15);
+                mainGradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.1)`);
+                mainGradient.addColorStop(0.3, `rgba(${r}, ${g}, ${b}, ${0.4 + this.pulseIntensity * 0.4})`);
+                mainGradient.addColorStop(0.7, `rgba(${r}, ${g}, ${b}, ${0.6 + this.pulseIntensity * 0.3})`);
+                mainGradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.1)`);
+                
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, this.currentRadius, 0, Math.PI * 2);
+                this.ctx.strokeStyle = mainGradient;
+                this.ctx.lineWidth = 6;
+                this.ctx.stroke();
+                
+                const innerGradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, this.currentRadius);
+                innerGradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${0.15 * this.pulseIntensity})`);
+                innerGradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${0.08 * this.pulseIntensity})`);
+                innerGradient.addColorStop(0.8, `rgba(${r}, ${g}, ${b}, ${0.03 * this.pulseIntensity})`);
+                innerGradient.addColorStop(1, 'transparent');
+                
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, this.currentRadius, 0, Math.PI * 2);
+                this.ctx.fillStyle = innerGradient;
+                this.ctx.fill();
+                
+                const coreGlow = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 30);
+                coreGlow.addColorStop(0, `rgba(255, 255, 255, ${0.3 * this.pulseIntensity})`);
+                coreGlow.addColorStop(1, 'transparent');
+                
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, 30, 0, Math.PI * 2);
+                this.ctx.fillStyle = coreGlow;
+                this.ctx.fill();
+                
+                this.ctx.restore();
+            }
+            
+            drawLightRays() {
+                this.ctx.save();
+                this.ctx.translate(this.centerX, this.centerY);
+                
+                this.lightRays.forEach(ray => {
+                    ray.phase += ray.speed;
+                    ray.opacity = Math.sin(ray.phase) * 0.1 * this.pulseIntensity;
+                    
+                    this.ctx.rotate(ray.angle);
+                    
+                    const gradient = this.ctx.createLinearGradient(0, 0, ray.length, 0);
+                    gradient.addColorStop(0, `rgba(123, 79, 191, ${ray.opacity})`);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, -2);
+                    this.ctx.lineTo(ray.length, 0);
+                    this.ctx.lineTo(0, 2);
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                    
+                    this.ctx.rotate(-ray.angle);
+                });
+                
+                this.ctx.restore();
+            }
+            
+            drawBreathParticles() {
+                this.breathParticles.forEach(p => {
+                    const x = this.centerX + Math.cos(p.angle) * p.distance;
+                    const y = this.centerY + Math.sin(p.angle) * p.distance;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, p.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(${p.color}, ${p.opacity})`;
+                    this.ctx.fill();
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, p.size * 3, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(${p.color}, ${p.opacity * 0.2})`;
+                    this.ctx.fill();
+                });
+            }
+            
+            drawOrbitParticles() {
+                this.orbitParticles.forEach(p => {
+                    const x = this.centerX + Math.cos(p.angle) * p.distance;
+                    const y = this.centerY + Math.sin(p.angle) * p.distance;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, p.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(${p.color}, ${p.opacity})`;
+                    this.ctx.fill();
+                });
+            }
+            
+            drawVignette() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.centerX, this.centerY, this.width * 0.3,
+                    this.centerX, this.centerY, this.width * 0.8
+                );
+                gradient.addColorStop(0, 'transparent');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+            }
+            
+            drawMouseGlow() {
+                if (this.mouse.x < 0) return;
+                
+                const gradient = this.ctx.createRadialGradient(
+                    this.mouse.x, this.mouse.y, 0,
+                    this.mouse.x, this.mouse.y, 100
+                );
+                gradient.addColorStop(0, 'rgba(212, 168, 67, 0.15)');
+                gradient.addColorStop(0.3, 'rgba(123, 79, 191, 0.08)');
+                gradient.addColorStop(1, 'transparent');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(this.mouse.x - 100, this.mouse.y - 100, 200, 200);
+            }
+            
+            easeInOut(t) {
+                return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+            }
+            
+            animate(currentTime) {
+                const deltaTime = currentTime - this.lastFrameTime;
+                this.lastFrameTime = currentTime;
+                this.time += deltaTime;
+                
+                this.updateParallax();
+                this.updateBreathPhase();
+                this.updateBreathRadius();
+                this.updateStars();
+                this.updateNebulas();
+                this.updateFogParticles();
+                this.updateBreathParticles();
+                this.updateOrbitParticles();
+                
+                this.draw();
+                
+                requestAnimationFrame((t) => this.animate(t));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new UniverseBreathingSystem();
+        });
+    </script>
+</body>
+</html>

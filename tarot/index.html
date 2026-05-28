@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystic Tarot - Reveal Your Destiny</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animation.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/aaaGameUI.css">
+    <link rel="stylesheet" href="css/healingModes.css">
+    <link rel="stylesheet" href="css/mbtiPersonality.css">
+    <link rel="stylesheet" href="css/mbtiPortrait.css">
+</head>
+<body>
+    <!-- SVG Definitions -->
+    <svg width="0" height="0" style="position: absolute;">
+        <defs>
+            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#7b4fbf;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#d4a843;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#7b4fbf;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#d4a843;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <div class="magic-circle-loading"></div>
+            <h1 class="loading-title">Mystic Tarot</h1>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Summoning the cosmos...</p>
+        </div>
+    </div>
+
+    <!-- Particle Canvas Background -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- WebGL Magic Effects Canvas -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- GPU Post Processing Canvas -->
+    <canvas id="gpu-particles-canvas"></canvas>
+
+    <!-- Main Application -->
+    <div id="app">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo">
+                <span class="logo-icon">&#9733;</span>
+                <h1>Mystic Tarot</h1>
+            </div>
+            <nav class="main-nav">
+                <button class="nav-btn" data-page="home">首页</button>
+                <button class="nav-btn" data-page="divination">开始占卜</button>
+                <button class="nav-btn" data-page="chat">对话占卜</button>
+                <button class="nav-btn" data-page="healing">情绪疗愈</button>
+                <button class="nav-btn" data-page="mbti">人格探索</button>
+                <button class="nav-btn" data-page="zodiac">星座匹配</button>
+                <button class="nav-btn" data-page="cosmic-portrait">宇宙画像</button>
+                <button class="nav-btn" data-page="gallery">牌库图鉴</button>
+                <button class="nav-btn" data-page="ranking">排行榜</button>
+                <button class="nav-btn" data-page="achievements">成就</button>
+                <button class="nav-btn" data-page="history">历史记录</button>
+                <button class="nav-btn" id="auth-btn" data-action="show-auth">登录</button>
+                <button class="nav-btn audio-toggle" id="audio-toggle">
+                    <span class="audio-icon">&#9835;</span>
+                </button>
+            </nav>
+        </header>
+
+        <!-- User Profile Bar -->
+        <div class="user-bar" id="user-bar" style="display: none;">
+            <div class="user-info">
+                <span class="user-avatar" id="user-avatar">🔮</span>
+                <span class="user-name" id="user-name">寻星者</span>
+                <span class="user-title" id="user-title">Lv.1</span>
+                <div class="exp-bar">
+                    <div class="exp-fill" id="exp-fill"></div>
+                </div>
+            </div>
+            <div class="user-stats">
+                <span class="stat-item">&#128218; <span id="stat-readings">0</span></span>
+                <span class="stat-item">&#128293; <span id="stat-streak">0</span></span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Home Page -->
+            <section id="page-home" class="page active">
+                <div class="hero-section">
+                    <div class="magic-circle-container">
+                        <div class="magic-circle"></div>
+                        <div class="magic-circle-inner"></div>
+                        <div class="floating-card">
+                            <div class="card-back"></div>
+                        </div>
+                    </div>
+                    <div class="hero-text">
+                        <h2 class="hero-title glow-text">Mystic Tarot</h2>
+                        <p class="hero-subtitle">Reveal Your Destiny</p>
+                    </div>
+                    <div class="hero-buttons">
+                        <button class="btn-magic" data-action="start-divination">
+                            <span class="btn-text">开始占卜</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                        <button class="btn-magic" data-action="daily-fortune">
+                            <span class="btn-text">每日运势</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                        <button class="btn-magic" data-action="open-gallery">
+                            <span class="btn-text">塔罗牌图鉴</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                    </div>
+                    <div id="companion-dashboard-root" class="companion-dashboard-root"></div>
+                </div>
+            </section>
+
+            <!-- Divination Page -->
+            <section id="page-divination" class="page">
+                <div class="divination-container">
+                    <!-- Question Input Section -->
+                    <div class="question-section" id="question-section">
+                        <div class="question-header">
+                            <span class="question-icon">&#10024;</span>
+                            <h3>向宇宙提问</h3>
+                        </div>
+                        <p class="question-hint">在心中默念你的问题，然后写下来。问题越真诚，解读越深刻。</p>
+                        <div class="question-input-wrapper">
+                            <textarea id="question-input" placeholder="例如：我最近的感情会有怎样的发展？&#10;或者：我在事业上应该做出什么选择？&#10;（也可以不写问题，直接开始占卜）" maxlength="200"></textarea>
+                            <div class="question-counter"><span id="question-count">0</span>/200</div>
+                        </div>
+                        <div class="question-examples">
+                            <span class="example-label">常见问题：</span>
+                            <button class="example-btn" data-question="我最近的感情运势如何？">感情运势</button>
+                            <button class="example-btn" data-question="我在事业上应该做出什么选择？">事业方向</button>
+                            <button class="example-btn" data-question="我最近的财运怎么样？">财运分析</button>
+                            <button class="example-btn" data-question="我该如何走出当前的迷茫？">人生方向</button>
+                        </div>
+                    </div>
+
+                    <div class="spread-selector">
+                        <h3>选择牌阵</h3>
+                        <div class="spread-options">
+                            <button class="spread-btn active" data-spread="single">
+                                <span class="spread-icon">&#9827;</span>
+                                <span>单牌占卜</span>
+                            </button>
+                            <button class="spread-btn" data-spread="three">
+                                <span class="spread-icon">&#9827;&#9827;&#9827;</span>
+                                <span>三牌阵</span>
+                            </button>
+                            <button class="spread-btn" data-spread="time">
+                                <span class="spread-icon">&#9201;</span>
+                                <span>过去/现在/未来</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-table">
+                        <div class="card-slots" id="card-slots"></div>
+                        <div class="shuffling-animation" id="shuffling-anim">
+                            <div class="shuffle-cards"></div>
+                        </div>
+                    </div>
+
+                    <div class="divination-actions">
+                        <button class="btn-magic btn-draw" id="btn-draw">
+                            <span class="btn-text">抽取卡牌</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                        <button class="btn-magic btn-reveal" id="btn-reveal" style="display: none;">
+                            <span class="btn-text">揭示命运</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                    </div>
+
+                    <div class="reading-result" id="reading-result" style="display: none;">
+                        <div class="result-header">
+                            <h3>AI塔罗师解读</h3>
+                            <div class="divider-glow"></div>
+                        </div>
+                        <div class="ai-reading-question" id="ai-reading-question"></div>
+                        <div class="result-content" id="result-content"></div>
+                        <div class="mood-rating" id="mood-rating" style="display: none;">
+                            <p>为本次占卜打分：</p>
+                            <div class="mood-stars">
+                                <span class="mood-star" data-score="1">&#9733;</span>
+                                <span class="mood-star" data-score="2">&#9733;</span>
+                                <span class="mood-star" data-score="3">&#9733;</span>
+                                <span class="mood-star" data-score="4">&#9733;</span>
+                                <span class="mood-star" data-score="5">&#9733;</span>
+                                <span class="mood-star" data-score="6">&#9733;</span>
+                                <span class="mood-star" data-score="7">&#9733;</span>
+                                <span class="mood-star" data-score="8">&#9733;</span>
+                                <span class="mood-star" data-score="9">&#9733;</span>
+                                <span class="mood-star" data-score="10">&#9733;</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gallery Page -->
+            <section id="page-gallery" class="page">
+                <div class="gallery-container">
+                    <h2 class="section-title">塔罗牌图鉴</h2>
+                    <div class="gallery-filters">
+                        <button class="filter-btn active" data-filter="all">全部</button>
+                        <button class="filter-btn" data-filter="major">大阿卡纳</button>
+                    </div>
+                    <div class="gallery-grid" id="gallery-grid"></div>
+                </div>
+            </section>
+
+            <!-- Ranking Page -->
+            <section id="page-ranking" class="page">
+                <div class="ranking-container">
+                    <h2 class="section-title">运势排行榜</h2>
+                    <div class="ranking-tabs">
+                        <button class="ranking-tab active" data-tab="daily">今日</button>
+                        <button class="ranking-tab" data-tab="weekly">本周</button>
+                        <button class="ranking-tab" data-tab="alltime">总榜</button>
+                    </div>
+                    <div class="ranking-content" id="ranking-content"></div>
+                </div>
+            </section>
+
+            <!-- Achievements Page -->
+            <section id="page-achievements" class="page">
+                <div class="achievements-container">
+                    <h2 class="section-title">塔罗成就</h2>
+                    <div class="achievements-stats" id="achievements-stats"></div>
+                    <div class="achievements-grid" id="achievements-grid"></div>
+                </div>
+            </section>
+
+            <!-- History Page -->
+            <section id="page-history" class="page">
+                <div class="history-container">
+                    <h2 class="section-title">占卜历史</h2>
+                    <div class="history-list" id="history-list"></div>
+                    <button class="btn-magic btn-clear-history" id="btn-clear-history">
+                        <span class="btn-text">清空记录</span>
+                        <span class="btn-glow"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Chat Page -->
+            <section id="page-chat" class="page">
+                <div class="chat-page-container">
+                    <div class="chat-page-header">
+                        <h2 class="section-title">对话式塔罗占卜</h2>
+                        <p class="chat-page-subtitle">像与真人塔罗师对话一样，让AI为你指引方向</p>
+                    </div>
+                    <button class="btn-magic btn-start-chat" id="btn-start-chat">
+                        <span class="btn-text">🔮 开始对话占卜</span>
+                        <span class="btn-glow"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Healing Page -->
+            <section id="page-healing" class="page">
+                <div class="healing-page-container">
+                    <div class="healing-page-header">
+                        <h2 class="section-title">AI情绪疗愈</h2>
+                        <p class="healing-page-subtitle">在这里，你的每一种情绪都被接纳，每一种感受都被尊重</p>
+                    </div>
+                    <div class="healing-features">
+                        <div class="healing-feature" data-mode="breathing">
+                            <div class="healing-feature-icon">🌬️</div>
+                            <div class="healing-feature-title">呼吸练习</div>
+                            <div class="healing-feature-desc">可视化呼吸引导动画</div>
+                        </div>
+                        <div class="healing-feature" data-mode="meditation">
+                            <div class="healing-feature-icon">🧘</div>
+                            <div class="healing-feature-title">冥想引导</div>
+                            <div class="healing-feature-desc">AI疗愈文案陪伴</div>
+                        </div>
+                        <div class="healing-feature" data-mode="universe">
+                            <div class="healing-feature-icon">🌌</div>
+                            <div class="healing-feature-title">深夜宇宙</div>
+                            <div class="healing-feature-desc">沉浸式宇宙体验</div>
+                        </div>
+                        <div class="healing-feature" data-mode="combined">
+                            <div class="healing-feature-icon">✨</div>
+                            <div class="healing-feature-title">完整疗愈</div>
+                            <div class="healing-feature-desc">呼吸+冥想+宇宙</div>
+                        </div>
+                    </div>
+                    <button class="btn-magic btn-start-healing" id="btn-start-healing">
+                        <span class="btn-text">🌿 开始情绪疗愈</span>
+                        <span class="btn-glow"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Breathing Therapy Page -->
+            <section id="page-breathing" class="page">
+                <canvas id="breathing-canvas"></canvas>
+                <div class="breathing-controls">
+                    <button class="btn-magic btn-breathing-stop" id="btn-breathing-stop">
+                        <span class="btn-text">返回</span>
+                        <span class="btn-glow"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Meditation Guide Page -->
+            <section id="page-meditation" class="page">
+                <div class="meditation-container">
+                    <div id="meditation-text-container" class="meditation-text-container"></div>
+                    <div class="meditation-controls">
+                        <button class="btn-magic btn-meditation-stop" id="btn-meditation-stop">
+                            <span class="btn-text">返回</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Late Night Universe Page -->
+            <section id="page-universe" class="page">
+                <canvas id="universe-canvas"></canvas>
+                <div class="universe-controls">
+                    <button class="btn-magic btn-universe-stop" id="btn-universe-stop">
+                        <span class="btn-text">返回</span>
+                        <span class="btn-glow"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Combined Healing Page -->
+            <section id="page-combined" class="page">
+                <canvas id="combined-breathing-canvas"></canvas>
+                <div class="combined-container">
+                    <div id="combined-meditation-container" class="meditation-text-container"></div>
+                    <div class="combined-controls">
+                        <button class="btn-magic btn-combined-stop" id="btn-combined-stop">
+                            <span class="btn-text">返回</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MBTI Personality Page -->
+            <section id="page-mbti" class="page">
+                <div class="mbti-page-container">
+                    <div class="mbti-page-header">
+                        <h2 class="section-title">人格宇宙探索</h2>
+                        <p class="mbti-page-subtitle">探索内心人格的宇宙空间，16种人格，16个宇宙</p>
+                    </div>
+                    <div class="mbti-features">
+                        <div class="mbti-feature" data-mode="test">
+                            <div class="mbti-feature-icon">🌟</div>
+                            <div class="mbti-feature-title">人格测试</div>
+                            <div class="mbti-feature-desc">28题探索你的人格类型</div>
+                        </div>
+                        <div class="mbti-feature" data-mode="analysis">
+                            <div class="mbti-feature-icon">🔮</div>
+                            <div class="mbti-feature-title">人格分析</div>
+                            <div class="mbti-feature-desc">AI深度解读你的人格</div>
+                        </div>
+                        <div class="mbti-feature" data-mode="healing">
+                            <div class="mbti-feature-icon">🌙</div>
+                            <div class="mbti-feature-title">人格疗愈</div>
+                            <div class="mbti-feature-desc">定制你的情绪疗愈</div>
+                        </div>
+                        <div class="mbti-feature" data-mode="meditation">
+                            <div class="mbti-feature-icon">🧘</div>
+                            <div class="mbti-feature-title">人格冥想</div>
+                            <div class="mbti-feature-desc">专属冥想体验</div>
+                        </div>
+                    </div>
+                    <button class="btn-magic btn-start-mbti" id="btn-start-mbti">
+                        <span class="btn-text">✨ 开启人格探索之旅</span>
+                        <span class="btn-glow"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- MBTI Test Page -->
+            <section id="page-mbti-test" class="page">
+                <div class="mbti-test-container">
+                    <div class="mbti-test-header">
+                        <div class="progress-ring">
+                            <svg viewBox="0 0 100 100">
+                                <circle class="progress-bg" cx="50" cy="50" r="45" />
+                                <circle class="progress-fill" cx="50" cy="50" r="45" id="mbti-test-progress" />
+                            </svg>
+                            <span class="progress-text" id="mbti-progress-text">1/28</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-label">
+                                <span>测试进度</span>
+                                <span id="mbti-progress-percent">0%</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill" id="mbti-progress-bar-fill"></div>
+                            </div>
+                        </div>
+                        <div class="dimension-indicator" id="mbti-dimension-indicator">
+                            <span class="dim-label">外向</span>
+                            <div class="dim-bar">
+                                <div class="dim-fill" id="mbti-dim-fill"></div>
+                            </div>
+                            <span class="dim-label">内向</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mbti-question-area">
+                        <div class="question-card" id="mbti-question-card">
+                            <p class="question-text" id="mbti-question-text"></p>
+                            <div class="options-container" id="mbti-options-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MBTI Analysis Page -->
+            <section id="page-mbti-analysis" class="page">
+                <div class="mbti-analysis-container">
+                    <div class="mbti-analysis-header">
+                        <h2 class="analysis-title">宇宙正在解读你的人格...</h2>
+                        <div class="analysis-animation" id="mbti-analysis-animation">
+                            <div class="orbit-ring">
+                                <div class="orbit-dot"></div>
+                            </div>
+                            <div class="orbit-ring orbit-ring-2">
+                                <div class="orbit-dot"></div>
+                            </div>
+                            <div class="orbit-ring orbit-ring-3">
+                                <div class="orbit-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mbti-analysis-content" id="mbti-analysis-content">
+                        <div class="personality-reveal" id="mbti-personality-reveal">
+                            <div class="type-badge" id="mbti-type-badge"></div>
+                            <h3 class="type-name" id="mbti-type-name"></h3>
+                            <p class="type-title" id="mbti-type-title"></p>
+                            <div class="type-description" id="mbti-type-description"></div>
+                        </div>
+                        
+                        <div class="dimensions-display" id="mbti-dimensions-display">
+                            <div class="dimension-bar" data-dimension="EI">
+                                <span class="dim-name">外向 (E)</span>
+                                <div class="dim-track">
+                                    <div class="dim-progress" id="mbti-dim-EI"></div>
+                                </div>
+                                <span class="dim-name">内向 (I)</span>
+                            </div>
+                            <div class="dimension-bar" data-dimension="SN">
+                                <span class="dim-name">感觉 (S)</span>
+                                <div class="dim-track">
+                                    <div class="dim-progress" id="mbti-dim-SN"></div>
+                                </div>
+                                <span class="dim-name">直觉 (N)</span>
+                            </div>
+                            <div class="dimension-bar" data-dimension="TF">
+                                <span class="dim-name">思考 (T)</span>
+                                <div class="dim-track">
+                                    <div class="dim-progress" id="mbti-dim-TF"></div>
+                                </div>
+                                <span class="dim-name">情感 (F)</span>
+                            </div>
+                            <div class="dimension-bar" data-dimension="JP">
+                                <span class="dim-name">判断 (J)</span>
+                                <div class="dim-track">
+                                    <div class="dim-progress" id="mbti-dim-JP"></div>
+                                </div>
+                                <span class="dim-name">知觉 (P)</span>
+                            </div>
+                        </div>
+
+                        <div class="portrait-section" id="portrait-section" style="display: none;">
+                            <h3 class="portrait-title">沉浸式人格画像</h3>
+                            <div class="portrait-content" id="portrait-content"></div>
+                            <button class="cosmic-btn" id="btn-start-healing-from-portrait">
+                                <span class="btn-text">进入人格疗愈空间</span>
+                                <span class="btn-glow"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MBTI Healing Page -->
+            <section id="page-mbti-healing" class="page">
+                <div class="mbti-healing-container">
+                    <div class="mbti-healing-header">
+                        <h2 class="healing-title">人格专属疗愈空间</h2>
+                        <p class="healing-subtitle" id="mbti-healing-subtitle"></p>
+                    </div>
+                    
+                    <div class="mbti-healing-options">
+                        <div class="healing-card" data-mode="emotion">
+                            <div class="healing-icon">🌙</div>
+                            <h3>情绪疗愈</h3>
+                            <p>识别并安抚你的情绪</p>
+                        </div>
+                        <div class="healing-card" data-mode="meditation">
+                            <div class="healing-icon">🧘</div>
+                            <h3>人格冥想</h3>
+                            <p>定制你的冥想体验</p>
+                        </div>
+                        <div class="healing-card" data-mode="companion">
+                            <div class="healing-icon">✨</div>
+                            <h3>AI陪伴</h3>
+                            <p>懂你的陪伴者</p>
+                        </div>
+                        <div class="healing-card" data-mode="breathing">
+                            <div class="healing-icon">🌬️</div>
+                            <h3>呼吸练习</h3>
+                            <p>跟随节奏放松</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mbti-healing-content-area" id="mbti-healing-content-area">
+                        <div class="healing-chat" id="mbti-healing-chat"></div>
+                        <div class="healing-input-area" id="mbti-healing-input-area" style="display: none;">
+                            <input type="text" id="mbti-healing-input" placeholder="说说你的感受..." maxlength="200">
+                            <button class="send-btn" id="mbti-healing-send">✦</button>
+                        </div>
+                    </div>
+                    
+                    <button class="cosmic-btn back-btn" id="btn-back-mbti-healing">
+                        <span class="btn-text">返回</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Zodiac Match Page -->
+            <section id="page-zodiac" class="page">
+                <div class="zodiac-container">
+                    <div class="zodiac-header">
+                        <h2 class="section-title">星座匹配度分析</h2>
+                        <p class="zodiac-subtitle">探索两颗星之间的引力与共鸣</p>
+                    </div>
+
+                    <div class="zodiac-selector">
+                        <div class="zodiac-select-group">
+                            <label class="zodiac-label">你的星座</label>
+                            <div class="zodiac-grid" id="zodiac-grid-1"></div>
+                        </div>
+                        <div class="zodiac-connector">
+                            <span class="connector-icon">✦</span>
+                        </div>
+                        <div class="zodiac-select-group">
+                            <label class="zodiac-label">TA的星座</label>
+                            <div class="zodiac-grid" id="zodiac-grid-2"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn-magic btn-analyze" id="btn-analyze-zodiac">
+                        <span class="btn-text">✨ 开始星象分析</span>
+                        <span class="btn-glow"></span>
+                    </button>
+
+                    <div class="zodiac-result" id="zodiac-result" style="display: none;">
+                        <div class="result-header">
+                            <div class="match-score-circle">
+                                <svg viewBox="0 0 120 120">
+                                    <circle class="score-bg" cx="60" cy="60" r="54" />
+                                    <circle class="score-fill" cx="60" cy="60" r="54" id="zodiac-score-fill" />
+                                </svg>
+                                <span class="score-value" id="zodiac-score-value">0%</span>
+                            </div>
+                            <h3 class="match-title" id="zodiac-match-title"></h3>
+                            <p class="match-subtitle" id="zodiac-match-subtitle"></p>
+                        </div>
+
+                        <!-- Soul Reading Section -->
+                        <div class="soul-reading-section" id="zodiac-soul-reading"></div>
+
+                        <!-- Emotion Scene Section -->
+                        <div class="emotion-scene-section" id="zodiac-emotion-scene"></div>
+
+                        <div class="zodiac-dimensions" id="zodiac-dimensions"></div>
+
+                        <div class="zodiac-advice" id="zodiac-advice"></div>
+
+                        <div class="zodiac-element-note" id="zodiac-element-note"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cosmic Portrait Page -->
+            <section id="page-cosmic-portrait" class="page">
+                <div class="cosmic-portrait-container">
+                    <div class="cosmic-portrait-header">
+                        <h2 class="section-title">宇宙人格画像</h2>
+                        <p class="cosmic-portrait-subtitle">探索你灵魂深处的宇宙密码</p>
+                    </div>
+
+                    <div class="cosmic-portrait-selector">
+                        <div class="cosmic-select-group">
+                            <label class="cosmic-label">你的MBTI人格</label>
+                            <select id="mbti-select" class="cosmic-select">
+                                <option value="">选择你的人格类型</option>
+                                <option value="INTJ">INTJ - 建筑师</option>
+                                <option value="INTP">INTP - 哲学家</option>
+                                <option value="ENTJ">ENTJ - 统帅</option>
+                                <option value="ENTP">ENTP - 辩论家</option>
+                                <option value="INFJ">INFJ - 先知</option>
+                                <option value="INFP">INFP - 诗人</option>
+                                <option value="ENFJ">ENFJ - 导师</option>
+                                <option value="ENFP">ENFP - 探险家</option>
+                                <option value="ISTJ">ISTJ - 守护者</option>
+                                <option value="ISFJ">ISFJ - 护士</option>
+                                <option value="ESTJ">ESTJ - 管理者</option>
+                                <option value="ESFJ">ESFJ - 东道主</option>
+                                <option value="ISTP">ISTP - 工匠</option>
+                                <option value="ISFP">ISFP - 艺术家</option>
+                                <option value="ESTP">ESTP - 冒险家</option>
+                                <option value="ESFP">ESFP - 表演者</option>
+                            </select>
+                        </div>
+
+                        <div class="cosmic-select-group">
+                            <label class="cosmic-label">你的星座</label>
+                            <select id="zodiac-select" class="cosmic-select">
+                                <option value="">选择你的星座</option>
+                                <option value="aries">♈ 白羊座</option>
+                                <option value="taurus">♉ 金牛座</option>
+                                <option value="gemini">♊ 双子座</option>
+                                <option value="cancer">♋ 巨蟹座</option>
+                                <option value="leo">♌ 狮子座</option>
+                                <option value="virgo">♍ 处女座</option>
+                                <option value="libra">♎ 天秤座</option>
+                                <option value="scorpio">♏ 天蝎座</option>
+                                <option value="sagittarius">♐ 射手座</option>
+                                <option value="capricorn">♑ 摩羯座</option>
+                                <option value="aquarius">♒ 水瓶座</option>
+                                <option value="pisces">♓ 双鱼座</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-magic btn-generate-portrait" id="btn-generate-portrait">
+                        <span class="btn-text">✨ 生成宇宙人格画像</span>
+                        <span class="btn-glow"></span>
+                    </button>
+
+                    <div class="cosmic-portrait-result" id="cosmic-portrait-result" style="display: none;">
+                        <div class="portrait-header">
+                            <div class="portrait-archetype" id="portrait-archetype"></div>
+                            <h3 class="portrait-title" id="portrait-title"></h3>
+                        </div>
+
+                        <div class="portrait-sections" id="portrait-sections"></div>
+
+                        <div class="cosmic-advice" id="cosmic-advice"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Auth Modal -->
+        <div class="card-modal" id="auth-modal">
+            <div class="modal-content auth-modal">
+                <button class="modal-close" id="auth-modal-close">&times;</button>
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">登录</button>
+                    <button class="auth-tab" data-tab="register">注册</button>
+                </div>
+                <div class="auth-forms">
+                    <form id="login-form" class="auth-form active">
+                        <div class="form-group">
+                            <label>用户名</label>
+                            <input type="text" id="login-username" required placeholder="输入用户名">
+                        </div>
+                        <div class="form-group">
+                            <label>密码</label>
+                            <input type="password" id="login-password" required placeholder="输入密码">
+                        </div>
+                        <button type="submit" class="btn-magic btn-auth">
+                            <span class="btn-text">登录</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                    </form>
+                    <form id="register-form" class="auth-form">
+                        <div class="form-group">
+                            <label>用户名</label>
+                            <input type="text" id="register-username" required placeholder="3-50个字符" minlength="3" maxlength="50">
+                        </div>
+                        <div class="form-group">
+                            <label>邮箱</label>
+                            <input type="email" id="register-email" required placeholder="输入邮箱">
+                        </div>
+                        <div class="form-group">
+                            <label>密码</label>
+                            <input type="password" id="register-password" required placeholder="至少6个字符" minlength="6">
+                        </div>
+                        <button type="submit" class="btn-magic btn-auth">
+                            <span class="btn-text">注册</span>
+                            <span class="btn-glow"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Overlay -->
+        <div class="chat-overlay" id="chat-overlay">
+            <div class="chat-container" id="chat-container"></div>
+        </div>
+
+        <!-- Card Modal -->
+        <div class="card-modal" id="card-modal">
+            <div class="modal-content">
+                <button class="modal-close" id="modal-close">&times;</button>
+                <div class="modal-card-display" id="modal-card-display"></div>
+                <div class="modal-card-info" id="modal-card-info"></div>
+            </div>
+        </div>
+
+        <!-- Volume Control -->
+        <div class="volume-control" id="volume-control">
+            <label for="volume-slider">音量</label>
+            <input type="range" id="volume-slider" min="0" max="100" value="50">
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/tarot.js"></script>
+    <script src="js/zodiacData.js"></script>
+    <script src="js/zodiacMatch.js"></script>
+    <script src="js/aiReader.js"></script>
+    <script src="js/aiInterpreter.js"></script>
+    <script src="js/oracleProphet.js"></script>
+    <script src="js/emotionalHealing.js"></script>
+    <script src="js/conversationalTarot.js"></script>
+    <script src="js/chatUI.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/companionProfile.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/webgl/magicEffects.js"></script>
+    <script src="js/webgl/postProcessing.js"></script>
+    <script src="js/cinematicCamera.js"></script>
+    <script src="js/aaaGameMenu.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/mobileGestures.js"></script>
+    <script src="js/breathingTherapy.js"></script>
+    <script src="js/aiMeditationGuide.js"></script>
+    <script src="js/lateNightUniverse.js"></script>
+    <script src="js/mbtiTest.js"></script>
+    <script src="js/mbtiAnalysis.js"></script>
+    <script src="js/cosmicPortrait.js"></script>
+    <script src="js/mbtiHealing.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

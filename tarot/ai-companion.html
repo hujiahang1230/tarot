@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宇宙陪伴者</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #050310;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .ui-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px 10px;
+            pointer-events: auto;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 300;
+            letter-spacing: 6px;
+            color: rgba(212, 168, 67, 0.8);
+            text-shadow: 0 0 20px rgba(212, 168, 67, 0.3);
+        }
+
+        .header p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 3px;
+            margin-top: 5px;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 15%;
+            pointer-events: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(123, 79, 191, 0.2) transparent;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background-color: rgba(123, 79, 191, 0.2);
+            border-radius: 2px;
+        }
+
+        .message {
+            margin-bottom: 30px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.companion {
+            text-align: center;
+        }
+
+        .message.companion .content {
+            display: inline-block;
+            max-width: 600px;
+            padding: 20px 30px;
+            background: rgba(20, 15, 40, 0.4);
+            border: 1px solid rgba(123, 79, 191, 0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            font-size: 16px;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.85);
+            letter-spacing: 1px;
+            text-shadow: 0 0 15px rgba(123, 79, 191, 0.3);
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.user .content {
+            display: inline-block;
+            max-width: 500px;
+            padding: 15px 25px;
+            background: rgba(123, 79, 191, 0.15);
+            border: 1px solid rgba(123, 79, 191, 0.3);
+            border-radius: 15px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .typing-indicator {
+            text-align: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .typing-indicator.visible {
+            opacity: 1;
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 8px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: rgba(123, 79, 191, 0.6);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .input-area {
+            padding: 20px 15%;
+            pointer-events: auto;
+        }
+
+        .input-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 15px 50px 15px 25px;
+            background: rgba(20, 15, 40, 0.6);
+            border: 1px solid rgba(123, 79, 191, 0.3);
+            border-radius: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 15px;
+            font-family: inherit;
+            letter-spacing: 1px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .input-wrapper input:focus {
+            border-color: rgba(123, 79, 191, 0.6);
+            box-shadow: 0 0 20px rgba(123, 79, 191, 0.2);
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(123, 79, 191, 0.3);
+            border: none;
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            background: rgba(123, 79, 191, 0.5);
+            box-shadow: 0 0 15px rgba(123, 79, 191, 0.4);
+        }
+
+        .mood-indicator {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 10;
+        }
+
+        .mood-indicator.visible {
+            opacity: 1;
+        }
+
+        .cursor-glow {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212, 168, 67, 0.4) 0%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            transition: transform 0.1s ease;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                padding: 20px 8%;
+            }
+            
+            .input-area {
+                padding: 20px 8%;
+            }
+            
+            .message.companion .content {
+                font-size: 14px;
+                padding: 15px 20px;
+            }
+            
+            .message.user .content {
+                font-size: 13px;
+                padding: 12px 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cosmic-canvas"></canvas>
+    <div class="cursor-glow" id="cursor-glow"></div>
+    
+    <div class="ui-layer">
+        <div class="header">
+            <h1>宇宙陪伴者</h1>
+            <p>深夜宇宙中，有人听你说话</p>
+        </div>
+        
+        <div class="chat-container" id="chat-container">
+            <div class="message companion">
+                <div class="content">你来了。<br>我在这里，陪你。</div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typing-indicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="user-input" placeholder="说说你现在的心情..." maxlength="200">
+                <button class="send-btn" id="send-btn">✦</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mood-indicator" id="mood-indicator"></div>
+
+    <script>
+        /**
+         * 沉浸式AI情绪陪伴系统
+         * 包含：情绪识别、陪伴回复、打字机动画、宇宙粒子背景
+         */
+
+        class CosmicCompanion {
+            constructor() {
+                this.canvas = document.getElementById('cosmic-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.chatContainer = document.getElementById('chat-container');
+                this.userInput = document.getElementById('user-input');
+                this.sendBtn = document.getElementById('send-btn');
+                this.typingIndicator = document.getElementById('typing-indicator');
+                this.moodIndicator = document.getElementById('mood-indicator');
+                this.cursorGlow = document.getElementById('cursor-glow');
+                
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.centerX = this.width / 2;
+                this.centerY = this.height / 2;
+                
+                this.mouse = { x: this.centerX, y: this.centerY };
+                this.parallax = { x: 0, y: 0 };
+                
+                this.time = 0;
+                this.lastFrameTime = 0;
+                this.currentMood = 'neutral';
+                this.moodIntensity = 0;
+                this.backgroundHue = 240;
+                
+                this.stars = [];
+                this.nebulas = [];
+                this.fogParticles = [];
+                this.companionParticles = [];
+                this.lightOrbs = [];
+                
+                this.isTyping = false;
+                this.conversationHistory = [];
+                
+                this.init();
+            }
+            
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                window.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                
+                this.createStars(250);
+                this.createNebulas(6);
+                this.createFogParticles(15);
+                this.createCompanionParticles(60);
+                this.createLightOrbs(4);
+                
+                this.bindEvents();
+                this.animate(0);
+                
+                setTimeout(() => {
+                    this.showMoodHint('我在这里，安静地陪着你');
+                }, 2000);
+            }
+            
+            resize() {
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+                this.centerX = this.width / 2;
+                this.centerY = this.height / 2;
+            }
+            
+            handleMouseMove(e) {
+                this.mouse.x = e.clientX;
+                this.mouse.y = e.clientY;
+                this.cursorGlow.style.left = e.clientX + 'px';
+                this.cursorGlow.style.top = e.clientY + 'px';
+                this.parallax.x = (e.clientX / this.width - 0.5) * 20;
+                this.parallax.y = (e.clientY / this.height - 0.5) * 20;
+            }
+            
+            bindEvents() {
+                this.sendBtn.addEventListener('click', () => this.handleUserMessage());
+                this.userInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.handleUserMessage();
+                });
+            }
+            
+            handleUserMessage() {
+                const text = this.userInput.value.trim();
+                if (!text || this.isTyping) return;
+                
+                this.addUserMessage(text);
+                this.userInput.value = '';
+                
+                const emotion = this.detectEmotion(text);
+                this.currentMood = emotion.type;
+                this.moodIntensity = emotion.intensity;
+                
+                this.updateBackgroundMood(emotion.type);
+                
+                setTimeout(() => {
+                    this.showTyping();
+                    setTimeout(() => {
+                        this.hideTyping();
+                        const response = this.generateResponse(text, emotion);
+                        this.addCompanionMessage(response);
+                    }, 1500 + Math.random() * 1000);
+                }, 500);
+            }
+            
+            detectEmotion(text) {
+                const lower = text.toLowerCase();
+                
+                const anxietyWords = ['焦虑', '紧张', '害怕', '担心', '不安', '慌', '压力', '崩溃', '烦躁', '烦', '焦虑症', '恐慌'];
+                const sadnessWords = ['难过', '伤心', '哭', '泪', '失落', '孤独', '寂寞', '痛苦', '绝望', '绝望', '抑郁', '不开心', '委屈'];
+                const angerWords = ['生气', '愤怒', '恨', '烦死了', '讨厌', '愤怒', '恼火', '不爽'];
+                const confusionWords = ['迷茫', '困惑', '不知道', '犹豫', '选择', '怎么办', '无助', '无力'];
+                const tiredWords = ['累', '疲惫', '疲倦', '辛苦', '撑', '坚持', '好累', '太累'];
+                const happyWords = ['开心', '高兴', '快乐', '幸福', '满足', '感恩', '谢谢', '好', '棒', '喜欢'];
+                
+                let scores = {
+                    anxiety: 0,
+                    sadness: 0,
+                    anger: 0,
+                    confusion: 0,
+                    tired: 0,
+                    happy: 0,
+                    neutral: 1
+                };
+                
+                anxietyWords.forEach(w => { if (lower.includes(w)) scores.anxiety += 2; });
+                sadnessWords.forEach(w => { if (lower.includes(w)) scores.sadness += 2; });
+                angerWords.forEach(w => { if (lower.includes(w)) scores.anger += 2; });
+                confusionWords.forEach(w => { if (lower.includes(w)) scores.confusion += 2; });
+                tiredWords.forEach(w => { if (lower.includes(w)) scores.tired += 2; });
+                happyWords.forEach(w => { if (lower.includes(w)) scores.happy += 2; });
+                
+                const maxScore = Math.max(...Object.values(scores));
+                const dominant = Object.keys(scores).find(k => scores[k] === maxScore);
+                const intensity = Math.min(maxScore / 5, 1);
+                
+                return { type: dominant, intensity };
+            }
+            
+            updateBackgroundMood(mood) {
+                const moodColors = {
+                    anxiety: 280,
+                    sadness: 220,
+                    anger: 0,
+                    confusion: 260,
+                    tired: 240,
+                    happy: 45,
+                    neutral: 240
+                };
+                this.backgroundHue = moodColors[mood] || 240;
+            }
+            
+            generateResponse(text, emotion) {
+                const responses = {
+                    anxiety: [
+                        "我听见你的不安了。\n深呼吸，让我和你一起待在这片不安里。\n你不是一个人。",
+                        "焦虑的时候，宇宙也会变得安静。\n慢慢来，我在这里陪着你。\n一切都会好起来的。",
+                        "你的不安，我感受到了。\n不用急着好起来，\n我会一直在这里，陪你度过。",
+                        "深呼吸，吸气...呼气...\n让我和你一起，慢慢平静下来。\n你做得很好。",
+                        "焦虑是暂时的，就像夜空中的流星。\n它会过去，而我会一直在这里。"
+                    ],
+                    sadness: [
+                        "你的难过，我看见了。\n想哭就哭吧，我在这里陪着你。\n不需要坚强，做你自己就好。",
+                        "伤心也没关系，\n宇宙会接住你的每一滴眼泪。\n我陪你，慢慢来。",
+                        "孤独的时候，就抬头看看星空。\n每一颗星星，都在陪你发光。\n你不是一个人。",
+                        "难过的时候，不用假装开心。\n我陪你待在这片灰色里，\n直到光慢慢回来。",
+                        "你的眼泪，宇宙都记得。\n慢慢来，我会一直在这里，\n陪你等到天亮。"
+                    ],
+                    anger: [
+                        "愤怒也没关系，\n你的情绪是合理的。\n我陪你，让这股能量慢慢散去。",
+                        "生气的时候，就深呼吸。\n我在这里，不会被你的愤怒吓跑。\n慢慢来，我懂你。",
+                        "你的愤怒，我接住了。\n不用压抑，也不用爆发，\n就让我陪你待一会儿。",
+                        "愤怒背后，往往是受伤的心。\n我看见你了，\n慢慢来，我陪你。"
+                    ],
+                    confusion: [
+                        "迷茫的时候，不用急着找答案。\n就让我和你一起，待在这片不确定里。\n慢慢来，路会自己出现。",
+                        "不知道方向也没关系，\n宇宙很大，我们慢慢走。\n我会陪你，找到属于你的光。",
+                        "困惑是成长的开始，\n你已经在路上了。\n我陪你，一步一步来。",
+                        "不用急着明白一切，\n有些答案，时间会告诉你。\n我陪你等。"
+                    ],
+                    tired: [
+                        "累了就休息吧，\n你已经做得很好了。\n我陪你，安静地待一会儿。",
+                        "疲惫的时候，就放下重担。\n宇宙会托住你，\n我也会。好好休息。",
+                        "你辛苦了，真的。\n不用一直坚强，\n现在，让我来陪你休息。",
+                        "累了就停下来，\n星星也会休息，你也是。\n我陪你，慢慢恢复力量。"
+                    ],
+                    happy: [
+                        "你的开心，像星星一样亮。\n我陪你一起感受这份美好。\n愿你一直这样发光。",
+                        "快乐的时候，就好好享受吧。\n我为你高兴，\n愿这份温暖一直陪着你。",
+                        "你的笑容，宇宙都看见了。\n继续保持这份美好，\n我会一直在这里，为你鼓掌。",
+                        "开心真好，\n愿这份感觉多停留一会儿。\n我陪你，一起感受。"
+                    ],
+                    neutral: [
+                        "嗯，我听见你了。\n今天过得怎么样？\n我陪你，慢慢说。",
+                        "我在这里，安静地陪着你。\n想说什么，都可以。\n不用急，慢慢来。",
+                        "深夜的宇宙很安静，\n正好适合说话。\n我在听，你说。",
+                        "有时候，只是待在一起也很好。\n我陪你，就这样安静地。",
+                        "你的每一句话，我都认真听着。\n继续说，我在这儿。"
+                    ]
+                };
+                
+                const pool = responses[emotion.type] || responses.neutral;
+                return pool[Math.floor(Math.random() * pool.length)];
+            }
+            
+            addUserMessage(text) {
+                const msg = document.createElement('div');
+                msg.className = 'message user';
+                msg.innerHTML = `<div class="content">${this.escapeHtml(text)}</div>`;
+                this.chatContainer.appendChild(msg);
+                this.scrollToBottom();
+                this.conversationHistory.push({ role: 'user', text });
+            }
+            
+            addCompanionMessage(text) {
+                this.isTyping = true;
+                const msg = document.createElement('div');
+                msg.className = 'message companion';
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'content';
+                msg.appendChild(contentDiv);
+                this.chatContainer.appendChild(msg);
+                
+                this.typeText(contentDiv, text, () => {
+                    this.isTyping = false;
+                    this.conversationHistory.push({ role: 'companion', text });
+                });
+                
+                this.scrollToBottom();
+            }
+            
+            typeText(element, text, callback) {
+                let index = 0;
+                const speed = 60 + Math.random() * 40;
+                
+                const type = () => {
+                    if (index < text.length) {
+                        element.textContent += text[index];
+                        index++;
+                        setTimeout(type, speed);
+                    } else {
+                        if (callback) callback();
+                    }
+                };
+                
+                type();
+            }
+            
+            showTyping() {
+                this.typingIndicator.classList.add('visible');
+                this.scrollToBottom();
+            }
+            
+            hideTyping() {
+                this.typingIndicator.classList.remove('visible');
+            }
+            
+            showMoodHint(text) {
+                this.moodIndicator.textContent = text;
+                this.moodIndicator.classList.add('visible');
+                setTimeout(() => {
+                    this.moodIndicator.classList.remove('visible');
+                }, 3000);
+            }
+            
+            scrollToBottom() {
+                this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            createStars(count) {
+                this.stars = [];
+                for (let i = 0; i < count; i++) {
+                    this.stars.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        size: Math.random() * 2 + 0.3,
+                        baseOpacity: Math.random() * 0.6 + 0.2,
+                        opacity: 0,
+                        twinkleSpeed: Math.random() * 0.008 + 0.003,
+                        phase: Math.random() * Math.PI * 2,
+                        speedX: (Math.random() - 0.5) * 0.05,
+                        speedY: (Math.random() - 0.5) * 0.03,
+                        parallaxFactor: Math.random() * 0.5 + 0.1
+                    });
+                }
+            }
+            
+            createNebulas(count) {
+                this.nebulas = [];
+                for (let i = 0; i < count; i++) {
+                    this.nebulas.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        radius: Math.random() * 250 + 150,
+                        hue: this.backgroundHue + Math.random() * 40 - 20,
+                        speedX: (Math.random() - 0.5) * 0.08,
+                        speedY: (Math.random() - 0.5) * 0.05,
+                        phase: Math.random() * Math.PI * 2,
+                        pulseSpeed: Math.random() * 0.002 + 0.001
+                    });
+                }
+            }
+            
+            createFogParticles(count) {
+                this.fogParticles = [];
+                for (let i = 0; i < count; i++) {
+                    this.fogParticles.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        radius: Math.random() * 200 + 100,
+                        opacity: Math.random() * 0.06 + 0.02,
+                        speedX: (Math.random() - 0.5) * 0.3,
+                        speedY: (Math.random() - 0.5) * 0.2,
+                        phase: Math.random() * Math.PI * 2,
+                        pulseSpeed: Math.random() * 0.005 + 0.002
+                    });
+                }
+            }
+            
+            createCompanionParticles(count) {
+                this.companionParticles = [];
+                for (let i = 0; i < count; i++) {
+                    this.companionParticles.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        size: Math.random() * 1.5 + 0.5,
+                        opacity: Math.random() * 0.4 + 0.1,
+                        speedX: (Math.random() - 0.5) * 0.2,
+                        speedY: -Math.random() * 0.1 - 0.05,
+                        life: 1,
+                        decay: Math.random() * 0.0003 + 0.0001,
+                        hue: this.backgroundHue + Math.random() * 30,
+                        wobble: Math.random() * Math.PI * 2,
+                        wobbleSpeed: Math.random() * 0.01 + 0.005
+                    });
+                }
+            }
+            
+            createLightOrbs(count) {
+                this.lightOrbs = [];
+                for (let i = 0; i < count; i++) {
+                    this.lightOrbs.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        radius: Math.random() * 100 + 50,
+                        opacity: Math.random() * 0.08 + 0.02,
+                        pulseSpeed: Math.random() * 0.003 + 0.001,
+                        phase: Math.random() * Math.PI * 2,
+                        hue: this.backgroundHue + Math.random() * 40
+                    });
+                }
+            }
+            
+            update() {
+                this.stars.forEach(star => {
+                    star.phase += star.twinkleSpeed;
+                    const moodSync = Math.sin(this.time * 0.001) * 0.1 * this.moodIntensity;
+                    star.opacity = star.baseOpacity + moodSync;
+                    star.x += star.speedX + this.parallax.x * star.parallaxFactor * 0.1;
+                    star.y += star.speedY + this.parallax.y * star.parallaxFactor * 0.1;
+                    
+                    if (star.x < 0) star.x = this.width;
+                    if (star.x > this.width) star.x = 0;
+                    if (star.y < 0) star.y = this.height;
+                    if (star.y > this.height) star.y = 0;
+                });
+                
+                this.nebulas.forEach(nebula => {
+                    nebula.hue = this.backgroundHue + Math.sin(this.time * 0.0005) * 20;
+                    nebula.x += nebula.speedX + this.parallax.x * 0.05;
+                    nebula.y += nebula.speedY + this.parallax.y * 0.05;
+                    nebula.phase += nebula.pulseSpeed;
+                    
+                    if (nebula.x < -nebula.radius * 2) nebula.x = this.width + nebula.radius * 2;
+                    if (nebula.x > this.width + nebula.radius * 2) nebula.x = -nebula.radius * 2;
+                    if (nebula.y < -nebula.radius * 2) nebula.y = this.height + nebula.radius * 2;
+                    if (nebula.y > this.height + nebula.radius * 2) nebula.y = -nebula.radius * 2;
+                });
+                
+                this.fogParticles.forEach(fog => {
+                    fog.x += fog.speedX;
+                    fog.y += fog.speedY;
+                    fog.phase += fog.pulseSpeed;
+                    
+                    if (fog.x < -fog.radius) fog.x = this.width + fog.radius;
+                    if (fog.x > this.width + fog.radius) fog.x = -fog.radius;
+                    if (fog.y < -fog.radius) fog.y = this.height + fog.radius;
+                    if (fog.y > this.height + fog.radius) fog.y = -fog.radius;
+                });
+                
+                this.companionParticles = this.companionParticles.filter(p => {
+                    p.wobble += p.wobbleSpeed;
+                    p.x += p.speedX + Math.sin(p.wobble) * 0.15;
+                    p.y += p.speedY;
+                    p.life -= p.decay;
+                    p.opacity = p.life * 0.4;
+                    p.hue = this.backgroundHue + Math.sin(this.time * 0.001) * 20;
+                    
+                    if (p.y < -10) {
+                        p.y = this.height + 10;
+                        p.x = Math.random() * this.width;
+                        p.life = 1;
+                    }
+                    
+                    return p.life > 0;
+                });
+                
+                if (this.companionParticles.length < 60) {
+                    this.companionParticles.push({
+                        x: Math.random() * this.width,
+                        y: this.height + 10,
+                        size: Math.random() * 1.5 + 0.5,
+                        opacity: 0.4,
+                        speedX: (Math.random() - 0.5) * 0.2,
+                        speedY: -Math.random() * 0.1 - 0.05,
+                        life: 1,
+                        decay: Math.random() * 0.0003 + 0.0001,
+                        hue: this.backgroundHue + Math.random() * 30,
+                        wobble: Math.random() * Math.PI * 2,
+                        wobbleSpeed: Math.random() * 0.01 + 0.005
+                    });
+                }
+                
+                this.lightOrbs.forEach(orb => {
+                    orb.hue = this.backgroundHue + Math.sin(this.time * 0.0008 + orb.phase) * 30;
+                    orb.phase += orb.pulseSpeed;
+                });
+            }
+            
+            draw() {
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                this.drawBackground();
+                this.drawNebulas();
+                this.drawFog();
+                this.drawStars();
+                this.drawCompanionParticles();
+                this.drawLightOrbs();
+                this.drawVignette();
+            }
+            
+            drawBackground() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.centerX + this.parallax.x * 0.5,
+                    this.centerY + this.parallax.y * 0.5,
+                    0,
+                    this.centerX,
+                    this.centerY,
+                    this.width * 0.8
+                );
+                gradient.addColorStop(0, `hsl(${this.backgroundHue}, 40%, 8%)`);
+                gradient.addColorStop(0.4, `hsl(${this.backgroundHue}, 35%, 5%)`);
+                gradient.addColorStop(0.7, `hsl(${this.backgroundHue}, 30%, 3%)`);
+                gradient.addColorStop(1, `hsl(${this.backgroundHue}, 25%, 2%)`);
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+            }
+            
+            drawStars() {
+                this.stars.forEach(star => {
+                    const twinkle = Math.sin(star.phase) * 0.3 + 0.7;
+                    const opacity = star.opacity * twinkle;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${this.backgroundHue + 20}, 60%, 80%, ${opacity})`;
+                    this.ctx.fill();
+                    
+                    if (star.size > 1.5) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(star.x, star.y, star.size * 2.5, 0, Math.PI * 2);
+                        this.ctx.fillStyle = `hsla(${this.backgroundHue + 20}, 60%, 80%, ${opacity * 0.15})`;
+                        this.ctx.fill();
+                    }
+                });
+            }
+            
+            drawNebulas() {
+                this.nebulas.forEach(nebula => {
+                    const pulse = Math.sin(this.time * 0.001 + nebula.phase) * 0.5 + 0.5;
+                    const radius = nebula.radius * (1 + pulse * 0.08);
+                    
+                    const gradient = this.ctx.createRadialGradient(nebula.x, nebula.y, 0, nebula.x, nebula.y, radius);
+                    gradient.addColorStop(0, `hsla(${nebula.hue}, 50%, 40%, 0.05)`);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(nebula.x - radius, nebula.y - radius, radius * 2, radius * 2);
+                });
+            }
+            
+            drawFog() {
+                this.fogParticles.forEach(fog => {
+                    const pulse = Math.sin(this.time * fog.pulseSpeed + fog.phase) * 0.5 + 0.5;
+                    const opacity = fog.opacity * pulse;
+                    
+                    const gradient = this.ctx.createRadialGradient(fog.x, fog.y, 0, fog.x, fog.y, fog.radius);
+                    gradient.addColorStop(0, `hsla(${this.backgroundHue}, 30%, 30%, ${opacity})`);
+                    gradient.addColorStop(0.5, `hsla(${this.backgroundHue}, 25%, 20%, ${opacity * 0.5})`);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(fog.x - fog.radius, fog.y - fog.radius, fog.radius * 2, fog.radius * 2);
+                });
+            }
+            
+            drawCompanionParticles() {
+                this.companionParticles.forEach(p => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${p.hue}, 60%, 70%, ${p.opacity})`;
+                    this.ctx.fill();
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${p.hue}, 60%, 70%, ${p.opacity * 0.2})`;
+                    this.ctx.fill();
+                });
+            }
+            
+            drawLightOrbs() {
+                this.lightOrbs.forEach(orb => {
+                    const pulse = Math.sin(this.time * orb.pulseSpeed + orb.phase) * 0.5 + 0.5;
+                    const opacity = orb.opacity * pulse;
+                    
+                    const gradient = this.ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.radius);
+                    gradient.addColorStop(0, `hsla(${orb.hue}, 50%, 60%, ${opacity})`);
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(orb.x - orb.radius, orb.y - orb.radius, orb.radius * 2, orb.radius * 2);
+                });
+            }
+            
+            drawVignette() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.centerX, this.centerY, this.width * 0.3,
+                    this.centerX, this.centerY, this.width * 0.8
+                );
+                gradient.addColorStop(0, 'transparent');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.5)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+            }
+            
+            animate(currentTime) {
+                const deltaTime = currentTime - this.lastFrameTime;
+                this.lastFrameTime = currentTime;
+                this.time += deltaTime;
+                
+                this.update();
+                this.draw();
+                
+                requestAnimationFrame((t) => this.animate(t));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new CosmicCompanion();
+        });
+    </script>
+</body>
+</html>

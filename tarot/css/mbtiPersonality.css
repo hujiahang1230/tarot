@@ -1,0 +1,2898 @@
+/**
+ * MBTI人格宇宙 CSS
+ * 深色宇宙、梦境感、AAA游戏UI、高级感
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #050310;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: none;
+}
+
+#page-mbti canvas,
+#page-mbti-test canvas,
+#page-mbti-analysis canvas,
+#page-mbti-healing canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.cursor-glow {
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 168, 67, 0.4) 0%, transparent 70%);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    transition: transform 0.1s ease;
+}
+
+.ui-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+#page-mbti,
+#page-mbti-test,
+#page-mbti-analysis,
+#page-mbti-healing {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.8s ease;
+    pointer-events: none;
+}
+
+#page-mbti.active,
+#page-mbti-test.active,
+#page-mbti-analysis.active,
+#page-mbti-healing.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* MBTI页面容器 */
+.mbti-page-container,
+.mbti-test-container,
+.mbti-analysis-container,
+.mbti-healing-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 10%;
+}
+
+.mbti-page-header,
+.mbti-healing-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.mbti-page-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 3px;
+    margin-top: 10px;
+}
+
+.mbti-features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.mbti-feature {
+    padding: 25px 15px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+
+.mbti-feature:hover, .mbti-feature.active {
+    background: rgba(123, 79, 191, 0.3);
+    border-color: rgba(212, 168, 67, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(123, 79, 191, 0.3);
+}
+
+.mbti-feature-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(212, 168, 67, 0.5));
+}
+
+.mbti-feature-title {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+}
+
+.mbti-feature-desc {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-start-mbti {
+    align-self: center;
+    margin-top: 20px;
+}
+
+/* MBTI 页面基础样式 - 与主应用兼容 */
+#page-mbti,
+#page-mbti-test,
+#page-mbti-analysis,
+#page-mbti-healing {
+    /* 不覆盖 display，让主应用的 .page/.active 控制显示 */
+    width: 100%;
+    min-height: calc(100vh - 120px);
+    padding: 20px 5%;
+    overflow-y: auto;
+}
+
+/* 确保 MBTI 页面激活时内容可见 */
+#page-mbti.active,
+#page-mbti-test.active,
+#page-mbti-analysis.active,
+#page-mbti-healing.active {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* MBTI 主页 */
+.mbti-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    text-align: center;
+}
+
+.mbti-page-header {
+    margin-bottom: 40px;
+}
+
+.mbti-page-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 3px;
+    margin-top: 10px;
+}
+
+.mbti-features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+    width: 100%;
+    max-width: 900px;
+}
+
+.mbti-feature {
+    padding: 25px 15px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+
+.mbti-feature:hover, .mbti-feature.active {
+    background: rgba(123, 79, 191, 0.3);
+    border-color: rgba(212, 168, 67, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(123, 79, 191, 0.3);
+}
+
+.mbti-feature-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(212, 168, 67, 0.5));
+}
+
+.mbti-feature-title {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+}
+
+.mbti-feature-desc {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-start-mbti {
+    align-self: center;
+    margin-top: 20px;
+}
+
+/* MBTI 测试页 */
+.mbti-test-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 5%;
+}
+
+.mbti-test-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+    background: rgba(15, 10, 30, 0.8);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(123, 79, 191, 0.3);
+}
+
+.progress-ring {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(123, 79, 191, 0.2);
+    stroke-width: 4;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: #d4a843;
+    stroke-width: 4;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    color: #d4a843;
+    font-weight: 600;
+}
+
+.progress-bar-container {
+    flex: 1;
+    min-width: 150px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#mbti-progress-percent {
+    color: #d4a843;
+    font-weight: 600;
+}
+
+.progress-bar-track {
+    height: 8px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7b4fbf, #d4a843);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.dimension-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.dim-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+}
+
+.dim-bar {
+    width: 80px;
+    height: 4px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.dim-fill {
+    height: 100%;
+    background: #d4a843;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    width: 50%;
+}
+
+.mbti-question-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#mbti-question-card {
+    max-width: 700px;
+    width: 100%;
+    padding: 30px;
+    background: rgba(20, 15, 40, 0.7);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+}
+
+#mbti-question-text {
+    font-size: 20px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+#mbti-options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+#mbti-options-container .option-btn {
+    padding: 15px;
+    background: rgba(123, 79, 191, 0.1);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+#mbti-options-container .option-btn:hover {
+    background: rgba(123, 79, 191, 0.3);
+    border-color: #d4a843;
+}
+
+#mbti-options-container .option-btn.selected {
+    background: rgba(212, 168, 67, 0.2);
+    border-color: #d4a843;
+    color: #d4a843;
+}
+
+/* MBTI 分析页 */
+.mbti-analysis-container {
+    min-height: 100vh;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 10%;
+    overflow-y: auto;
+}
+
+.mbti-analysis-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.analysis-title {
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: rgba(212, 168, 67, 0.8);
+    margin-bottom: 20px;
+}
+
+.analysis-animation {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+}
+
+.orbit-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 50%;
+    animation: orbitSpin 4s linear infinite;
+}
+
+.orbit-ring:nth-child(1) { width: 80px; height: 80px; }
+.orbit-ring:nth-child(2) { width: 120px; height: 120px; animation-duration: 6s; animation-direction: reverse; }
+.orbit-ring:nth-child(3) { width: 150px; height: 150px; animation-duration: 8s; }
+
+@keyframes orbitSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.orbit-dot {
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: #d4a843;
+    border-radius: 50%;
+}
+
+.mbti-analysis-content {
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+}
+
+#mbti-personality-reveal {
+    margin-bottom: 30px;
+}
+
+#mbti-type-badge {
+    display: inline-block;
+    padding: 10px 25px;
+    border-radius: 20px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 6px;
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+#mbti-type-name {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+}
+
+#mbti-type-title {
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: rgba(212, 168, 67, 0.7);
+    margin-bottom: 20px;
+}
+
+#mbti-type-description {
+    font-size: 15px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#mbti-dimensions-display {
+    display: grid;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.dimension-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dim-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 70px;
+}
+
+.dim-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dim-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #7b4fbf, #d4a843);
+    border-radius: 3px;
+    transition: width 1s ease;
+    width: 0%;
+}
+
+/* MBTI 疗愈页 */
+.mbti-healing-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 5%;
+}
+
+.mbti-healing-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.healing-title {
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: rgba(212, 168, 67, 0.8);
+    margin-bottom: 8px;
+}
+
+.healing-subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.mbti-healing-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.mbti-healing-content-area {
+    flex: 1;
+    background: rgba(20, 15, 40, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#mbti-healing-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+#mbti-healing-input-area {
+    padding: 12px;
+    border-top: 1px solid rgba(123, 79, 191, 0.2);
+    display: flex;
+    gap: 10px;
+}
+
+#mbti-healing-input {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    outline: none;
+}
+
+#mbti-healing-send {
+    width: 40px;
+    height: 40px;
+    background: rgba(123, 79, 191, 0.3);
+    border: 1px solid rgba(123, 79, 191, 0.5);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#btn-back-mbti-healing {
+    margin-top: 15px;
+    align-self: center;
+    padding: 10px 25px;
+    font-size: 14px;
+}
+
+.chat-message {
+    margin-bottom: 15px;
+    animation: messageFadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+@keyframes messageFadeIn {
+    to { opacity: 1; }
+}
+
+.chat-message.companion {
+    text-align: center;
+}
+
+.chat-message.user {
+    text-align: right;
+}
+
+.message-content {
+    display: inline-block;
+    max-width: 500px;
+    padding: 12px 20px;
+    background: rgba(123, 79, 191, 0.15);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-message.user .message-content {
+    background: rgba(212, 168, 67, 0.15);
+    border-color: rgba(212, 168, 67, 0.3);
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+    .mbti-features,
+    .mbti-healing-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .mbti-test-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .progress-bar-container {
+        width: 100%;
+    }
+    
+    .mbti-features,
+    .mbti-healing-options {
+        grid-template-columns: 1fr;
+    }
+    
+    #mbti-options-container {
+        grid-template-columns: 1fr;
+    }
+    
+    #mbti-type-badge {
+        font-size: 20px;
+    }
+    
+    #mbti-type-name {
+        font-size: 24px;
+    }
+}
+
+/* MBTI 主页 */
+.mbti-page-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 10%;
+    text-align: center;
+}
+
+.mbti-page-header {
+    margin-bottom: 40px;
+}
+
+.mbti-page-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 3px;
+    margin-top: 10px;
+}
+
+.mbti-features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+    width: 100%;
+    max-width: 900px;
+}
+
+.mbti-feature {
+    padding: 25px 15px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+
+.mbti-feature:hover, .mbti-feature.active {
+    background: rgba(123, 79, 191, 0.3);
+    border-color: rgba(212, 168, 67, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(123, 79, 191, 0.3);
+}
+
+.mbti-feature-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(212, 168, 67, 0.5));
+}
+
+.mbti-feature-title {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+}
+
+.mbti-feature-desc {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-start-mbti {
+    align-self: center;
+    margin-top: 20px;
+}
+
+/* MBTI 测试页 */
+.mbti-test-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 5%;
+}
+
+.mbti-test-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+    background: rgba(15, 10, 30, 0.8);
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(123, 79, 191, 0.3);
+}
+
+.progress-ring {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(123, 79, 191, 0.2);
+    stroke-width: 4;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: #d4a843;
+    stroke-width: 4;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    color: #d4a843;
+    font-weight: 600;
+}
+
+.progress-bar-container {
+    flex: 1;
+    min-width: 150px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#mbti-progress-percent {
+    color: #d4a843;
+    font-weight: 600;
+}
+
+.progress-bar-track {
+    height: 8px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7b4fbf, #d4a843);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.dimension-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.dim-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    white-space: nowrap;
+}
+
+.dim-bar {
+    width: 80px;
+    height: 4px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.dim-fill {
+    height: 100%;
+    background: #d4a843;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    width: 50%;
+}
+
+.mbti-question-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#mbti-question-card {
+    max-width: 700px;
+    width: 100%;
+    padding: 30px;
+    background: rgba(20, 15, 40, 0.7);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+}
+
+#mbti-question-text {
+    font-size: 20px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+#mbti-options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+#mbti-options-container .option-btn {
+    padding: 15px;
+    background: rgba(123, 79, 191, 0.1);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+#mbti-options-container .option-btn:hover {
+    background: rgba(123, 79, 191, 0.3);
+    border-color: #d4a843;
+}
+
+#mbti-options-container .option-btn.selected {
+    background: rgba(212, 168, 67, 0.2);
+    border-color: #d4a843;
+    color: #d4a843;
+}
+
+/* MBTI 分析页 */
+.mbti-analysis-container {
+    min-height: 100vh;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 10%;
+    overflow-y: auto;
+}
+
+.mbti-analysis-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.analysis-title {
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: rgba(212, 168, 67, 0.8);
+    margin-bottom: 20px;
+}
+
+.analysis-animation {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+}
+
+.orbit-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 50%;
+    animation: orbitSpin 4s linear infinite;
+}
+
+.orbit-ring:nth-child(1) { width: 80px; height: 80px; }
+.orbit-ring:nth-child(2) { width: 120px; height: 120px; animation-duration: 6s; animation-direction: reverse; }
+.orbit-ring:nth-child(3) { width: 150px; height: 150px; animation-duration: 8s; }
+
+@keyframes orbitSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.orbit-dot {
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: #d4a843;
+    border-radius: 50%;
+}
+
+.mbti-analysis-content {
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+}
+
+#mbti-personality-reveal {
+    margin-bottom: 30px;
+}
+
+#mbti-type-badge {
+    display: inline-block;
+    padding: 10px 25px;
+    border-radius: 20px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 6px;
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+#mbti-type-name {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+}
+
+#mbti-type-title {
+    font-size: 16px;
+    letter-spacing: 3px;
+    color: rgba(212, 168, 67, 0.7);
+    margin-bottom: 20px;
+}
+
+#mbti-type-description {
+    font-size: 15px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#mbti-dimensions-display {
+    display: grid;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.dimension-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dim-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 70px;
+}
+
+.dim-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dim-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #7b4fbf, #d4a843);
+    border-radius: 3px;
+    transition: width 1s ease;
+    width: 0%;
+}
+
+/* MBTI 疗愈页 */
+.mbti-healing-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 5%;
+}
+
+.mbti-healing-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.healing-title {
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    color: rgba(212, 168, 67, 0.8);
+    margin-bottom: 8px;
+}
+
+.healing-subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.mbti-healing-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.mbti-healing-content-area {
+    flex: 1;
+    background: rgba(20, 15, 40, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#mbti-healing-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+#mbti-healing-input-area {
+    padding: 12px;
+    border-top: 1px solid rgba(123, 79, 191, 0.2);
+    display: flex;
+    gap: 10px;
+}
+
+#mbti-healing-input {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    outline: none;
+}
+
+#mbti-healing-send {
+    width: 40px;
+    height: 40px;
+    background: rgba(123, 79, 191, 0.3);
+    border: 1px solid rgba(123, 79, 191, 0.5);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#btn-back-mbti-healing {
+    margin-top: 15px;
+    align-self: center;
+    padding: 10px 25px;
+    font-size: 14px;
+}
+
+.chat-message {
+    margin-bottom: 15px;
+    animation: messageFadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+@keyframes messageFadeIn {
+    to { opacity: 1; }
+}
+
+.chat-message.companion {
+    text-align: center;
+}
+
+.chat-message.user {
+    text-align: right;
+}
+
+.message-content {
+    display: inline-block;
+    max-width: 500px;
+    padding: 12px 20px;
+    background: rgba(123, 79, 191, 0.15);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-message.user .message-content {
+    background: rgba(212, 168, 67, 0.15);
+    border-color: rgba(212, 168, 67, 0.3);
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+    .mbti-features,
+    .mbti-healing-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .mbti-test-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .progress-bar-container {
+        width: 100%;
+    }
+    
+    .mbti-features,
+    .mbti-healing-options {
+        grid-template-columns: 1fr;
+    }
+    
+    #mbti-options-container {
+        grid-template-columns: 1fr;
+    }
+    
+    #mbti-type-badge {
+        font-size: 20px;
+    }
+    
+    #mbti-type-name {
+        font-size: 24px;
+    }
+}
+
+.mbti-test-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 5% 20px;
+    position: relative;
+    z-index: 100;
+}
+
+.mbti-test-header {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+    background: rgba(15, 10, 30, 0.95);
+    padding: 20px 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(123, 79, 191, 0.4);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(123, 79, 191, 0.2);
+}
+
+.progress-ring {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    flex-shrink: 0;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(123, 79, 191, 0.3);
+    stroke-width: 5;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 5;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+    filter: drop-shadow(0 0 8px rgba(212, 168, 67, 0.8));
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    color: #d4a843;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-container {
+    flex: 1;
+    min-width: 200px;
+    max-width: 500px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 1px;
+}
+
+#mbti-progress-percent {
+    color: #d4a843;
+    font-weight: 700;
+    font-size: 15px;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-track {
+    height: 12px;
+    background: rgba(123, 79, 191, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7b4fbf 0%, #9b59b6 50%, #d4a843 100%);
+    border-radius: 6px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.6), 0 0 40px rgba(123, 79, 191, 0.4);
+    position: relative;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent);
+    border-radius: 6px 6px 0 0;
+}
+
+.dimension-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.dim-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.dim-bar {
+    width: 100px;
+    height: 6px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dim-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d4a843, #7b4fbf);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    width: 50%;
+    box-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.mbti-test-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 5% 20px;
+    position: relative;
+    z-index: 100;
+}
+
+.mbti-test-header {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+    background: rgba(15, 10, 30, 0.95);
+    padding: 20px 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(123, 79, 191, 0.4);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(123, 79, 191, 0.2);
+}
+
+.progress-ring {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    flex-shrink: 0;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(123, 79, 191, 0.3);
+    stroke-width: 5;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 5;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+    filter: drop-shadow(0 0 8px rgba(212, 168, 67, 0.8));
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    color: #d4a843;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-container {
+    flex: 1;
+    min-width: 200px;
+    max-width: 500px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 1px;
+}
+
+#mbti-progress-percent {
+    color: #d4a843;
+    font-weight: 700;
+    font-size: 15px;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-track {
+    height: 12px;
+    background: rgba(123, 79, 191, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7b4fbf 0%, #9b59b6 50%, #d4a843 100%);
+    border-radius: 6px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.6), 0 0 40px rgba(123, 79, 191, 0.4);
+    position: relative;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent);
+    border-radius: 6px 6px 0 0;
+}
+
+.dimension-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.dim-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.dim-bar {
+    width: 100px;
+    height: 6px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dim-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d4a843, #7b4fbf);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    width: 50%;
+    box-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.mbti-test-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 5% 20px;
+    position: relative;
+    z-index: 100;
+}
+
+.mbti-test-header {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+    background: rgba(15, 10, 30, 0.95);
+    padding: 20px 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(123, 79, 191, 0.4);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(123, 79, 191, 0.2);
+}
+
+.progress-ring {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    flex-shrink: 0;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(123, 79, 191, 0.3);
+    stroke-width: 5;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 5;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+    filter: drop-shadow(0 0 8px rgba(212, 168, 67, 0.8));
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    color: #d4a843;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-container {
+    flex: 1;
+    min-width: 200px;
+    max-width: 500px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 1px;
+}
+
+#mbti-progress-percent {
+    color: #d4a843;
+    font-weight: 700;
+    font-size: 15px;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-track {
+    height: 12px;
+    background: rgba(123, 79, 191, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7b4fbf 0%, #9b59b6 50%, #d4a843 100%);
+    border-radius: 6px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.6), 0 0 40px rgba(123, 79, 191, 0.4);
+    position: relative;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent);
+    border-radius: 6px 6px 0 0;
+}
+
+.dimension-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.dim-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.dim-bar {
+    width: 100px;
+    height: 6px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dim-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d4a843, #7b4fbf);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    width: 50%;
+    box-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.mbti-test-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 5% 20px;
+    position: relative;
+    z-index: 100;
+}
+
+.mbti-test-header {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+    background: rgba(15, 10, 30, 0.95);
+    padding: 20px 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(123, 79, 191, 0.4);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(123, 79, 191, 0.2);
+}
+
+.progress-ring {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    flex-shrink: 0;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(123, 79, 191, 0.3);
+    stroke-width: 5;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 5;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+    filter: drop-shadow(0 0 8px rgba(212, 168, 67, 0.8));
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    color: #d4a843;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-container {
+    flex: 1;
+    min-width: 200px;
+    max-width: 500px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 1px;
+}
+
+#mbti-progress-percent {
+    color: #d4a843;
+    font-weight: 700;
+    font-size: 15px;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-track {
+    height: 12px;
+    background: rgba(123, 79, 191, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7b4fbf 0%, #9b59b6 50%, #d4a843 100%);
+    border-radius: 6px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.6), 0 0 40px rgba(123, 79, 191, 0.4);
+    position: relative;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent);
+    border-radius: 6px 6px 0 0;
+}
+
+.dimension-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.dim-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.dim-bar {
+    width: 100px;
+    height: 6px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dim-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d4a843, #7b4fbf);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    width: 50%;
+    box-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.mbti-test-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 5% 20px;
+    position: relative;
+    z-index: 100;
+}
+
+.mbti-test-header {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+    background: rgba(15, 10, 30, 0.95);
+    padding: 20px 25px;
+    border-radius: 16px;
+    border: 1px solid rgba(123, 79, 191, 0.4);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 200;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(123, 79, 191, 0.2);
+}
+
+.progress-ring {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    flex-shrink: 0;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(123, 79, 191, 0.3);
+    stroke-width: 5;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 5;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+    filter: drop-shadow(0 0 8px rgba(212, 168, 67, 0.8));
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    color: #d4a843;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-container {
+    flex: 1;
+    min-width: 200px;
+    max-width: 500px;
+}
+
+.progress-bar-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 1px;
+}
+
+#mbti-progress-percent {
+    color: #d4a843;
+    font-weight: 700;
+    font-size: 15px;
+    text-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.progress-bar-track {
+    height: 12px;
+    background: rgba(123, 79, 191, 0.15);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7b4fbf 0%, #9b59b6 50%, #d4a843 100%);
+    border-radius: 6px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.6), 0 0 40px rgba(123, 79, 191, 0.4);
+    position: relative;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent);
+    border-radius: 6px 6px 0 0;
+}
+
+.dimension-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.dim-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.dim-bar {
+    width: 100px;
+    height: 6px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dim-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d4a843, #7b4fbf);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    width: 50%;
+    box-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.mbti-question-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#mbti-question-card {
+    max-width: 700px;
+    width: 100%;
+    padding: 40px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+#mbti-question-text {
+    font-size: 22px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 30px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+#mbti-options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+#mbti-options-container .option-btn {
+    padding: 18px 20px;
+    background: rgba(123, 79, 191, 0.1);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    text-align: left;
+    animation: optionFadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+#mbti-options-container .option-btn:hover {
+    background: rgba(123, 79, 191, 0.3);
+    border-color: rgba(212, 168, 67, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(123, 79, 191, 0.3);
+}
+
+#mbti-options-container .option-btn.selected {
+    background: rgba(212, 168, 67, 0.3);
+    border-color: rgba(212, 168, 67, 0.6);
+    color: #d4a843;
+}
+
+/* MBTI分析页 */
+.mbti-analysis-content {
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+}
+
+#mbti-personality-reveal {
+    margin-bottom: 40px;
+}
+
+#mbti-type-badge {
+    display: inline-block;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: 8px;
+    color: #fff;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(123, 79, 191, 0.5);
+}
+
+#mbti-type-name {
+    font-size: 36px;
+    font-weight: 300;
+    letter-spacing: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+}
+
+#mbti-type-title {
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: rgba(212, 168, 67, 0.7);
+    margin-bottom: 30px;
+}
+
+#mbti-type-description {
+    font-size: 16px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+#mbti-dimensions-display {
+    display: grid;
+    gap: 20px;
+    margin-top: 40px;
+}
+
+/* MBTI疗愈页 */
+.mbti-healing-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.mbti-healing-content-area {
+    flex: 1;
+    background: rgba(20, 15, 40, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#mbti-healing-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(123, 79, 191, 0.2) transparent;
+}
+
+#mbti-healing-chat::-webkit-scrollbar {
+    width: 4px;
+}
+
+#mbti-healing-chat::-webkit-scrollbar-thumb {
+    background-color: rgba(123, 79, 191, 0.2);
+    border-radius: 2px;
+}
+
+#mbti-healing-input-area {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(123, 79, 191, 0.2);
+    display: flex;
+    gap: 10px;
+}
+
+#mbti-healing-input {
+    flex: 1;
+    padding: 12px 20px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 25px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#mbti-healing-input:focus {
+    border-color: rgba(123, 79, 191, 0.6);
+    box-shadow: 0 0 15px rgba(123, 79, 191, 0.2);
+}
+
+#mbti-healing-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+#mbti-healing-send {
+    width: 45px;
+    height: 45px;
+    background: rgba(123, 79, 191, 0.3);
+    border: 1px solid rgba(123, 79, 191, 0.5);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#mbti-healing-send:hover {
+    background: rgba(123, 79, 191, 0.5);
+    box-shadow: 0 0 15px rgba(123, 79, 191, 0.4);
+}
+
+#btn-back-mbti-healing {
+    margin-top: 20px;
+    align-self: center;
+    padding: 12px 30px;
+    font-size: 14px;
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+    .mbti-features,
+    .mbti-healing-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .mbti-test-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .progress-bar-container {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .mbti-features,
+    .mbti-healing-options {
+        grid-template-columns: 1fr;
+    }
+    
+    #mbti-type-badge {
+        font-size: 24px;
+        padding: 12px 20px;
+    }
+    
+    #mbti-type-name {
+        font-size: 28px;
+    }
+    
+    #mbti-options-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .mbti-test-header {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+.welcome-content {
+    text-align: center;
+    position: relative;
+}
+
+.cosmic-title {
+    font-size: 64px;
+    font-weight: 300;
+    letter-spacing: 20px;
+    color: rgba(212, 168, 67, 0.9);
+    text-shadow: 0 0 40px rgba(212, 168, 67, 0.5), 0 0 80px rgba(123, 79, 191, 0.3);
+    margin-bottom: 20px;
+    animation: titleGlow 3s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+    0%, 100% { text-shadow: 0 0 40px rgba(212, 168, 67, 0.5), 0 0 80px rgba(123, 79, 191, 0.3); }
+    50% { text-shadow: 0 0 60px rgba(212, 168, 67, 0.7), 0 0 100px rgba(123, 79, 191, 0.5); }
+}
+
+.cosmic-subtitle {
+    font-size: 18px;
+    letter-spacing: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 60px;
+}
+
+.welcome-orbs {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    pointer-events: none;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    animation: orbFloat 6s ease-in-out infinite;
+}
+
+.orb-1 {
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(123, 79, 191, 0.3) 0%, transparent 70%);
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 0s;
+}
+
+.orb-2 {
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(212, 168, 67, 0.3) 0%, transparent 70%);
+    bottom: 20px;
+    left: 20px;
+    animation-delay: 2s;
+}
+
+.orb-3 {
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(100, 150, 255, 0.3) 0%, transparent 70%);
+    bottom: 20px;
+    right: 20px;
+    animation-delay: 4s;
+}
+
+@keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(10px, -15px) scale(1.1); }
+    66% { transform: translate(-10px, 10px) scale(0.9); }
+}
+
+.cosmic-btn {
+    position: relative;
+    padding: 18px 50px;
+    background: rgba(123, 79, 191, 0.2);
+    border: 1px solid rgba(123, 79, 191, 0.4);
+    border-radius: 30px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    font-family: inherit;
+    overflow: hidden;
+    pointer-events: auto;
+}
+
+.cosmic-btn:hover {
+    background: rgba(123, 79, 191, 0.4);
+    border-color: rgba(212, 168, 67, 0.6);
+    box-shadow: 0 0 30px rgba(123, 79, 191, 0.5), 0 0 60px rgba(212, 168, 67, 0.3);
+    transform: translateY(-3px);
+}
+
+.btn-glow {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212, 168, 67, 0.3), transparent);
+    animation: glowSlide 3s ease-in-out infinite;
+}
+
+@keyframes glowSlide {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+}
+
+.welcome-hint {
+    margin-top: 30px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 3px;
+}
+
+/* 测试页 */
+.test-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 10%;
+}
+
+.test-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+
+.progress-ring {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+}
+
+.progress-bg {
+    fill: none;
+    stroke: rgba(123, 79, 191, 0.2);
+    stroke-width: 3;
+}
+
+.progress-fill {
+    fill: none;
+    stroke: rgba(212, 168, 67, 0.8);
+    stroke-width: 3;
+    stroke-dasharray: 283;
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.dimension-indicator {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+    margin: 0 40px;
+}
+
+.dim-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
+
+.dim-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.dim-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(212, 168, 67, 0.8), rgba(123, 79, 191, 0.8));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    width: 50%;
+}
+
+.question-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.question-card {
+    max-width: 700px;
+    width: 100%;
+    padding: 40px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.question-text {
+    font-size: 22px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 30px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.option-btn {
+    padding: 18px 20px;
+    background: rgba(123, 79, 191, 0.1);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    text-align: left;
+    animation: optionFadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+@keyframes optionFadeIn {
+    to { opacity: 1; }
+}
+
+.option-btn:hover {
+    background: rgba(123, 79, 191, 0.3);
+    border-color: rgba(212, 168, 67, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(123, 79, 191, 0.3);
+}
+
+.option-btn.selected {
+    background: rgba(212, 168, 67, 0.3);
+    border-color: rgba(212, 168, 67, 0.6);
+    color: #d4a843;
+}
+
+/* 分析页 */
+.analysis-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 10%;
+}
+
+.analysis-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.analysis-title {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 6px;
+    color: rgba(212, 168, 67, 0.8);
+    margin-bottom: 30px;
+}
+
+.analysis-animation {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+}
+
+.orbit-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 50%;
+    animation: orbitSpin 4s linear infinite;
+}
+
+.orbit-ring:nth-child(1) { width: 100px; height: 100px; }
+.orbit-ring:nth-child(2) { width: 150px; height: 150px; animation-duration: 6s; animation-direction: reverse; }
+.orbit-ring:nth-child(3) { width: 200px; height: 200px; animation-duration: 8s; }
+
+@keyframes orbitSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.orbit-dot {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: rgba(212, 168, 67, 0.8);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(212, 168, 67, 0.5);
+}
+
+.analysis-content {
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+}
+
+.personality-reveal {
+    margin-bottom: 40px;
+}
+
+.type-badge {
+    display: inline-block;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: 8px;
+    color: #fff;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(123, 79, 191, 0.5);
+}
+
+.type-name {
+    font-size: 36px;
+    font-weight: 300;
+    letter-spacing: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+}
+
+.type-title {
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: rgba(212, 168, 67, 0.7);
+    margin-bottom: 30px;
+}
+
+.type-description {
+    font-size: 16px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.dimensions-display {
+    display: grid;
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.dimension-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.dim-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 2px;
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.dim-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(123, 79, 191, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.dim-progress {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(212, 168, 67, 0.8), rgba(123, 79, 191, 0.8));
+    border-radius: 3px;
+    transition: width 1s ease;
+    width: 0%;
+}
+
+/* 疗愈页 */
+.healing-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 10%;
+}
+
+.healing-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.healing-title {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 6px;
+    color: rgba(212, 168, 67, 0.8);
+    margin-bottom: 10px;
+}
+
+.healing-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 3px;
+}
+
+.healing-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.healing-card {
+    padding: 25px 15px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    pointer-events: auto;
+}
+
+.healing-card:hover, .healing-card.active {
+    background: rgba(123, 79, 191, 0.3);
+    border-color: rgba(212, 168, 67, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(123, 79, 191, 0.3);
+}
+
+.healing-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(212, 168, 67, 0.5));
+}
+
+.healing-card h3 {
+    font-size: 16px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+}
+
+.healing-card p {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.healing-content-area {
+    flex: 1;
+    background: rgba(20, 15, 40, 0.4);
+    border: 1px solid rgba(123, 79, 191, 0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.healing-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(123, 79, 191, 0.2) transparent;
+}
+
+.healing-chat::-webkit-scrollbar {
+    width: 4px;
+}
+
+.healing-chat::-webkit-scrollbar-thumb {
+    background-color: rgba(123, 79, 191, 0.2);
+    border-radius: 2px;
+}
+
+.chat-message {
+    margin-bottom: 20px;
+    animation: messageFadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+@keyframes messageFadeIn {
+    to { opacity: 1; }
+}
+
+.chat-message.companion {
+    text-align: center;
+}
+
+.chat-message.user {
+    text-align: right;
+}
+
+.message-content {
+    display: inline-block;
+    max-width: 600px;
+    padding: 15px 25px;
+    background: rgba(123, 79, 191, 0.15);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 15px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 1px;
+}
+
+.chat-message.user .message-content {
+    background: rgba(212, 168, 67, 0.15);
+    border-color: rgba(212, 168, 67, 0.3);
+}
+
+.healing-input-area {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(123, 79, 191, 0.2);
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.healing-input-area input {
+    flex: 1;
+    padding: 12px 20px;
+    background: rgba(20, 15, 40, 0.6);
+    border: 1px solid rgba(123, 79, 191, 0.3);
+    border-radius: 25px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.healing-input-area input:focus {
+    border-color: rgba(123, 79, 191, 0.6);
+    box-shadow: 0 0 15px rgba(123, 79, 191, 0.2);
+}
+
+.healing-input-area input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.send-btn {
+    width: 45px;
+    height: 45px;
+    background: rgba(123, 79, 191, 0.3);
+    border: 1px solid rgba(123, 79, 191, 0.5);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-btn:hover {
+    background: rgba(123, 79, 191, 0.5);
+    box-shadow: 0 0 15px rgba(123, 79, 191, 0.4);
+}
+
+#page-mbti-healing .back-btn {
+    margin-top: 20px;
+    align-self: center;
+    padding: 12px 30px;
+    font-size: 14px;
+}
+
+/* 响应式 */
+@media (max-width: 1024px) {
+    .healing-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .cosmic-title {
+        font-size: 42px;
+        letter-spacing: 10px;
+    }
+    
+    .cosmic-subtitle {
+        font-size: 14px;
+        letter-spacing: 4px;
+    }
+    
+    .question-text {
+        font-size: 18px;
+    }
+    
+    .options-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .healing-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .type-badge {
+        font-size: 24px;
+        padding: 12px 20px;
+    }
+    
+    .type-name {
+        font-size: 28px;
+    }
+    
+    .dimension-bar {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .dim-name {
+        min-width: auto;
+    }
+}
