@@ -16,6 +16,18 @@ body {
     cursor: none;
 }
 
+body.mbti-standalone {
+    overflow: hidden;
+}
+
+#mbti-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
 #page-mbti canvas,
 #page-mbti-test canvas,
 #page-mbti-analysis canvas,
@@ -48,6 +60,23 @@ body {
     height: 100%;
     z-index: 10;
     pointer-events: none;
+}
+
+body.mbti-standalone .page {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(18px) scale(0.99);
+    transition: opacity 0.7s ease, visibility 0.7s ease, transform 0.7s ease;
+    pointer-events: none;
+}
+
+body.mbti-standalone .page.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
 }
 
 #page-mbti,
@@ -548,6 +577,428 @@ body {
     border-radius: 3px;
     transition: width 1s ease;
     width: 0%;
+}
+
+/* 人格档案中心 */
+.profile-center {
+    height: 100vh;
+    overflow-y: auto;
+    padding: 30px 5vw 42px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 168, 67, 0.35) transparent;
+}
+
+.profile-center::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 18% 16%, rgba(212, 168, 67, 0.16), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(69, 196, 255, 0.14), transparent 30%),
+        linear-gradient(135deg, rgba(4, 8, 26, 0.55), rgba(23, 12, 45, 0.34));
+}
+
+.profile-topbar,
+.profile-shell,
+.growth-timeline {
+    width: min(1240px, 100%);
+    margin: 0 auto;
+}
+
+.profile-topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+
+.profile-kicker,
+.panel-label {
+    color: rgba(212, 168, 67, 0.74);
+    font-size: 12px;
+    letter-spacing: 3px;
+}
+
+.profile-title {
+    margin-top: 6px;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: clamp(30px, 5vw, 58px);
+    font-weight: 300;
+    letter-spacing: 7px;
+    text-shadow: 0 0 28px rgba(123, 79, 191, 0.45);
+}
+
+.profile-sync {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border: 1px solid rgba(112, 226, 255, 0.28);
+    border-radius: 999px;
+    background: rgba(10, 18, 38, 0.48);
+    color: rgba(225, 246, 255, 0.78);
+    font-size: 13px;
+    letter-spacing: 1px;
+    backdrop-filter: blur(14px);
+}
+
+.sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #70e2ff;
+    box-shadow: 0 0 16px rgba(112, 226, 255, 0.95);
+    animation: syncPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes syncPulse {
+    0%, 100% { opacity: 0.45; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.25); }
+}
+
+.profile-shell {
+    display: grid;
+    grid-template-columns: minmax(260px, 330px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: stretch;
+}
+
+.glass-panel {
+    position: relative;
+    background: linear-gradient(145deg, rgba(16, 22, 50, 0.62), rgba(54, 30, 92, 0.34));
+    border: 1px solid rgba(215, 224, 255, 0.16);
+    border-radius: 18px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.13);
+    backdrop-filter: blur(18px);
+    overflow: hidden;
+}
+
+.glass-panel::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: 17px;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 26%, rgba(112, 226, 255, 0.07) 64%, transparent);
+}
+
+.profile-sidebar {
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 560px;
+}
+
+.avatar-frame {
+    position: relative;
+    width: 190px;
+    height: 190px;
+    display: grid;
+    place-items: center;
+    margin: 10px 0 24px;
+}
+
+.avatar-halo {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 168, 67, 0.5);
+    background:
+        conic-gradient(from 20deg, rgba(212, 168, 67, 0.1), rgba(112, 226, 255, 0.38), rgba(123, 79, 191, 0.2), rgba(212, 168, 67, 0.42), rgba(212, 168, 67, 0.1));
+    animation: haloSpin 12s linear infinite;
+    filter: drop-shadow(0 0 22px rgba(112, 226, 255, 0.18));
+}
+
+@keyframes haloSpin {
+    to { transform: rotate(360deg); }
+}
+
+.profile-avatar {
+    position: relative;
+    width: 142px;
+    height: 142px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.42), transparent 18%),
+        linear-gradient(145deg, rgba(112, 226, 255, 0.18), rgba(123, 79, 191, 0.55) 48%, rgba(212, 168, 67, 0.28));
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    color: #fff;
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-shadow: 0 0 24px rgba(255, 255, 255, 0.55);
+}
+
+.profile-player {
+    width: 100%;
+    text-align: center;
+}
+
+.player-label {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 12px;
+    letter-spacing: 3px;
+}
+
+.profile-player h3 {
+    margin: 8px 0 18px;
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 4px;
+}
+
+.level-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    color: rgba(212, 168, 67, 0.95);
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+
+.level-track,
+.metric-bar {
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.level-fill,
+.metric-bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #d4a843, #70e2ff);
+    box-shadow: 0 0 18px rgba(112, 226, 255, 0.45);
+}
+
+.level-fill {
+    width: 72%;
+}
+
+.badge-block {
+    width: 100%;
+    margin-top: 28px;
+}
+
+.personality-badge {
+    margin-top: 12px;
+    padding: 14px 16px;
+    border: 1px solid rgba(212, 168, 67, 0.38);
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(212, 168, 67, 0.16), rgba(123, 79, 191, 0.2));
+    text-align: center;
+    color: rgba(255, 245, 214, 0.95);
+    letter-spacing: 2px;
+    box-shadow: inset 0 0 22px rgba(212, 168, 67, 0.08);
+}
+
+.side-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    margin-top: auto;
+}
+
+.side-stats div {
+    padding: 16px 12px;
+    border-radius: 14px;
+    background: rgba(2, 8, 24, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.side-stats span,
+.profile-metric span {
+    display: block;
+    color: rgba(255, 255, 255, 0.48);
+    font-size: 12px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.side-stats strong {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 20px;
+    letter-spacing: 1px;
+}
+
+.portrait-card {
+    padding: 28px;
+    min-height: 560px;
+}
+
+.card-header,
+.timeline-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.card-header h3 {
+    margin-top: 8px;
+    font-size: clamp(25px, 3vw, 42px);
+    font-weight: 300;
+    letter-spacing: 5px;
+}
+
+.zodiac-chip {
+    padding: 11px 16px;
+    border-radius: 999px;
+    color: rgba(225, 246, 255, 0.9);
+    background: rgba(112, 226, 255, 0.12);
+    border: 1px solid rgba(112, 226, 255, 0.3);
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
+
+.keyword-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 24px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.keyword-cloud span {
+    padding: 9px 13px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-metric {
+    min-height: 128px;
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(3, 9, 28, 0.36);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-metric strong {
+    display: block;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.94);
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.profile-metric p,
+.ai-summary p {
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 14px;
+    line-height: 1.75;
+}
+
+.metric-bar {
+    margin-top: 18px;
+}
+
+.metric-bar i {
+    width: 78%;
+}
+
+.ai-summary {
+    position: relative;
+    z-index: 1;
+    margin-top: 16px;
+    padding: 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(212, 168, 67, 0.1), rgba(112, 226, 255, 0.08));
+    border: 1px solid rgba(212, 168, 67, 0.18);
+}
+
+.ai-summary .panel-label {
+    margin-bottom: 10px;
+}
+
+.profile-action {
+    margin-top: 18px;
+    padding: 13px 28px;
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+.growth-timeline {
+    margin-top: 22px;
+    padding: 24px 28px;
+}
+
+.timeline-heading span {
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 12px;
+    letter-spacing: 3px;
+}
+
+.timeline-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.timeline-item {
+    position: relative;
+    padding: 18px 16px 18px 20px;
+    border-left: 1px solid rgba(112, 226, 255, 0.36);
+    background: rgba(3, 9, 28, 0.3);
+    border-radius: 12px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 22px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #d4a843;
+    box-shadow: 0 0 16px rgba(212, 168, 67, 0.8);
+}
+
+.timeline-item time {
+    color: rgba(112, 226, 255, 0.82);
+    font-size: 12px;
+    letter-spacing: 2px;
+}
+
+.timeline-item h4 {
+    margin: 10px 0 8px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.timeline-item p {
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 13px;
+    line-height: 1.65;
 }
 
 /* MBTI 疗愈页 */
@@ -2853,6 +3304,18 @@ body {
     .healing-options {
         grid-template-columns: repeat(2, 1fr);
     }
+
+    .profile-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-sidebar {
+        min-height: auto;
+    }
+
+    .timeline-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 768px) {
@@ -2894,5 +3357,44 @@ body {
     
     .dim-name {
         min-width: auto;
+    }
+
+    .profile-center {
+        padding: 20px 16px 34px;
+    }
+
+    .profile-topbar,
+    .card-header,
+    .timeline-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .profile-title {
+        letter-spacing: 4px;
+    }
+
+    .portrait-card,
+    .profile-sidebar,
+    .growth-timeline {
+        padding: 20px;
+        border-radius: 16px;
+    }
+
+    .profile-grid,
+    .timeline-list,
+    .side-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .avatar-frame {
+        width: 158px;
+        height: 158px;
+    }
+
+    .profile-avatar {
+        width: 116px;
+        height: 116px;
+        font-size: 34px;
     }
 }

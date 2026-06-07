@@ -14,6 +14,7 @@ const historyRoutes = require('./routes/history');
 const rankingRoutes = require('./routes/ranking');
 const achievementRoutes = require('./routes/achievements');
 const companionRoutes = require('./routes/companion');
+const agentRoutes = require('./routes/agent');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,7 @@ app.use('/api/history', historyRoutes);
 app.use('/api/ranking', rankingRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/companion', companionRoutes);
+app.use('/api/agent', agentRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

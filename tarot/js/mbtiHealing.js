@@ -106,11 +106,13 @@ class MBTIHealing {
         }, 14000);
     }
     
-    handleUserMessage(text) {
+    async handleUserMessage(text) {
         if (this.isTyping) return;
         
+        this.isTyping = true;
+        this.chatHistory.push({ role: 'user', text });
         const emotion = this.detectEmotion(text);
-        const response = this.generateResponse(text, emotion);
+        const response = await this.fetchAgentResponse(text, emotion);
         
         setTimeout(() => {
             this.sendMessage(response);
@@ -171,9 +173,46 @@ class MBTIHealing {
         const pool = responses[emotion] || responses.neutral;
         return pool[Math.floor(Math.random() * pool.length)];
     }
+
+    async fetchAgentResponse(text, emotion) {
+        const fallback = () => this.generateResponse(text, emotion);
+
+        if (!window.API?.agent?.chat) {
+            return fallback();
+        }
+
+        try {
+            const personality = this.currentPersonality || {};
+            const data = await API.agent.chat({
+                message: text,
+                emotion: { type: emotion },
+                history: this.chatHistory.slice(-12).map(item => ({
+                    role: item.role === 'companion' ? 'assistant' : item.role,
+                    content: item.text
+                })),
+                context: {
+                    page: 'mbti-healing',
+                    mode: this.currentMode,
+                    mbti: personality.type,
+                    mbtiName: personality.name,
+                    mbtiTitle: personality.title
+                }
+            });
+
+            if (data.warning) {
+                console.warn(data.warning);
+            }
+
+            return data.reply || fallback();
+        } catch (error) {
+            console.error('MBTI AI agent request failed:', error);
+            return fallback();
+        }
+    }
     
     sendMessage(text) {
         this.isTyping = true;
+        this.chatHistory.push({ role: 'companion', text });
         
         if (this.onMessage) {
             this.onMessage(text, () => {

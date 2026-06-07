@@ -397,7 +397,7 @@
                 });
             }
             
-            handleUserMessage() {
+            async handleUserMessage() {
                 const text = this.userInput.value.trim();
                 if (!text || this.isTyping) return;
                 
@@ -409,14 +409,17 @@
                 this.moodIntensity = emotion.intensity;
                 
                 this.updateBackgroundMood(emotion.type);
+                this.isTyping = true;
                 
                 setTimeout(() => {
                     this.showTyping();
-                    setTimeout(() => {
+                    this.fetchAgentReply(text, emotion).then((result) => {
                         this.hideTyping();
-                        const response = this.generateResponse(text, emotion);
-                        this.addCompanionMessage(response);
-                    }, 1500 + Math.random() * 1000);
+                        if (result.cards?.length) {
+                            this.addTarotCards(result.cards);
+                        }
+                        this.addCompanionMessage(result.reply);
+                    });
                 }, 500);
             }
             
@@ -519,6 +522,57 @@
                 const pool = responses[emotion.type] || responses.neutral;
                 return pool[Math.floor(Math.random() * pool.length)];
             }
+
+            async fetchAgentReply(text, emotion) {
+                const fallback = () => ({
+                    reply: this.generateResponse(text, emotion),
+                    cards: []
+                });
+
+                try {
+                    const history = this.conversationHistory.slice(-12).map(item => ({
+                        role: item.role === 'companion' ? 'assistant' : item.role,
+                        content: item.text
+                    }));
+
+                    const response = await fetch('/api/agent/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: text,
+                            emotion,
+                            history,
+                            page: 'ai-companion'
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || 'AI request failed');
+                    }
+
+                    if (data.emotion && data.emotion.type) {
+                        this.currentMood = data.emotion.type;
+                        this.moodIntensity = data.emotion.intensity || emotion.intensity;
+                        this.updateBackgroundMood(data.emotion.type);
+                    }
+
+                    if (data.warning) {
+                        console.warn(data.warning);
+                    }
+
+                    return {
+                        reply: data.reply || fallback().reply,
+                        cards: data.cards || [],
+                        provider: data.provider,
+                        workflow: data.workflow
+                    };
+                } catch (error) {
+                    console.error('AI companion request failed:', error);
+                    this.showMoodHint('AI连接暂不可用，已切换本地陪伴回复');
+                    return fallback();
+                }
+            }
             
             addUserMessage(text) {
                 const msg = document.createElement('div');
@@ -543,6 +597,26 @@
                     this.conversationHistory.push({ role: 'companion', text });
                 });
                 
+                this.scrollToBottom();
+            }
+
+            addTarotCards(cards) {
+                const msg = document.createElement('div');
+                msg.className = 'message companion tarot-reading-cards';
+                msg.innerHTML = `
+                    <div class="content tarot-card-list">
+                        <div class="tarot-card-list-title">本次抽到的牌</div>
+                        <div class="tarot-card-grid">
+                            ${cards.map(card => `
+                                <div class="tarot-card-chip">
+                                    <div class="tarot-card-name">${this.escapeHtml(card.name)} ${card.reversed ? '逆位' : '正位'}</div>
+                                    <div class="tarot-card-meaning">${this.escapeHtml(card.meaning || '')}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                this.chatContainer.appendChild(msg);
                 this.scrollToBottom();
             }
             

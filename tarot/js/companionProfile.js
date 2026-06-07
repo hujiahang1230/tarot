@@ -56,6 +56,7 @@ const CompanionProfile = {
         const profile = companionData?.profile || {};
         const daily = companionData?.daily_message || {};
         const growth = companionData?.growth_archive || {};
+        const mentor = companionData?.ai_mentor || {};
         const currentEmotion = profile.current_emotion || 'neutral';
 
         const emotionButtons = this.emotionOptions.map((item) => `
@@ -70,6 +71,12 @@ const CompanionProfile = {
             profile.zodiac_name || '星座待记录',
             profile.current_emotion_label ? `此刻：${profile.current_emotion_label}` : '此刻：平静'
         ].join(' · ');
+
+        const mentorFocus = (mentor.focus_points || ['情绪觉察', '稳定行动', '自我理解']).map((item) => `<span>${item}</span>`).join('');
+        const mentorAdvice = (mentor.personalized_advice || ['我会先陪你看见最近真正消耗你的地方，再一起把下一步变小。'])
+            .slice(0, 4)
+            .map((item) => `<li>${item}</li>`)
+            .join('');
 
         return `
             <div class="companion-dashboard">
@@ -103,6 +110,19 @@ const CompanionProfile = {
                             <p>${daily.late_night_whisper || '夜色会替你保管那些没说出口的话。'}</p>
                         </div>
                     </div>
+                </section>
+                <section class="companion-card mentor-card">
+                    <div class="card-kicker">AI 人格导师</div>
+                    <h3 class="card-title">${mentor.title || '你的长期成长导师'}</h3>
+                    <p class="mentor-role">${mentor.role || '人生导师 · 心理顾问 · 长期陪伴者'}</p>
+                    <p class="mentor-message">${mentor.mentor_message || '我会根据你的 MBTI、星座、情绪记录和测试历史，慢慢学会更贴近你的表达方式。'}</p>
+                    <div class="mentor-focus-row">${mentorFocus}</div>
+                    <ul class="mentor-advice-list">${mentorAdvice}</ul>
+                    <div class="mentor-practice">
+                        <span class="daily-label">本周练习</span>
+                        <p>${mentor.practice || '写下一个你想保留的自己，以及一个你想慢慢调整的惯性。'}</p>
+                    </div>
+                    <p class="mentor-memory">${mentor.memory_note || '导师记忆正在积累中。'}</p>
                 </section>
                 <section class="companion-card growth-card">
                     <div class="card-kicker">长期人格成长档案</div>

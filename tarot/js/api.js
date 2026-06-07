@@ -216,6 +216,91 @@ const API = {
     },
 
     /**
+     * AI agent endpoints
+     */
+    agent: {
+        chat(data) {
+            return API.request('/agent/chat', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+        },
+
+        /**
+         * Stream AI response via SSE
+         * @param {object} data - Same body as chat()
+         * @param {function} onToken - Called with each token string
+         * @param {function} onDone - Called when stream ends
+         * @param {function} onError - Called on error
+         * @returns {function} abort - Call to cancel the stream
+         */
+        chatStream(data, onToken, onDone, onError) {
+            const controller = new AbortController();
+
+            (async () => {
+                try {
+                    const response = await fetch(`${API.baseURL}/agent/chat/stream`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(API.token ? { Authorization: `Bearer ${API.token}` } : {})
+                        },
+                        body: JSON.stringify(data),
+                        signal: controller.signal
+                    });
+
+                    if (!response.ok) {
+                        const text = await response.text().catch(() => 'Stream request failed');
+                        throw new Error(text);
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+
+                        for (const line of lines) {
+                            const trimmed = line.trim();
+                            if (!trimmed.startsWith('data: ')) continue;
+                            const payload = trimmed.slice(6).trim();
+                            if (!payload) continue;
+                            try {
+                                const parsed = JSON.parse(payload);
+                                if (parsed.error) {
+                                    if (onError) onError(new Error(parsed.error));
+                                    return;
+                                }
+                                if (parsed.done) {
+                                    if (onDone) onDone();
+                                    return;
+                                }
+                                if (parsed.token) {
+                                    if (onToken) onToken(parsed.token);
+                                }
+                            } catch { /* skip malformed */ }
+                        }
+                    }
+
+                    if (onDone) onDone();
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                    console.error('Stream error:', err.message);
+                    if (onError) onError(err);
+                }
+            })();
+
+            return () => controller.abort();
+        }
+    },
+
+    /**
      * Check if user is logged in
      */
     isLoggedIn() {

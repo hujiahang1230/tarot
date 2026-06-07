@@ -1,6 +1,8 @@
 const express = require('express');
 const db = require('../db');
 const { authenticateToken } = require('./auth');
+const agentRouter = require('./agent');
+const generateMentor = agentRouter.generateMentor;
 
 const router = express.Router();
 
@@ -151,6 +153,196 @@ function buildCompanionSummary(profile, growth) {
     return `你曾以 ${mbti} 与 ${zodiac} 的姿态来到这里。最近的情绪底色是${emotion}，近阶段最常出现的是${growth.dominantEmotionLabel}，焦虑波动${growth.anxietyTrendLabel}。我会记得这些细小变化，并继续用更贴近你的方式与你说话。`;
 }
 
+function getMBTIMentorFocus(mbtiType = '') {
+    const type = String(mbtiType || '').toUpperCase();
+    const groups = {
+        INFJ: {
+            archetype: '温柔但容易耗尽的洞察者',
+            focus: ['情绪消耗', '边界感', '过度共情'],
+            advice: [
+                '你很容易把别人的情绪也当成自己的责任。今天先练习一句话：我可以理解你，但我不需要替你承受全部。',
+                '如果一段关系让你持续疲惫，不要急着证明自己更温柔，先确认这份温柔有没有被尊重。',
+                '你需要的不是变冷漠，而是把共情从本能反应，慢慢练成有选择的能力。'
+            ],
+            practice: '每天睡前写下三件“这不是我的责任”的事，帮自己把情绪边界重新放回原位。'
+        },
+        ENTP: {
+            archetype: '点子很多但需要落地节奏的探索者',
+            focus: ['执行力', '专注力', '长期规划'],
+            advice: [
+                '你的灵感不缺，真正需要被保护的是完成闭环的耐心。今天只选一个点子，把它推进到可交付的一小步。',
+                '当你想开启新计划时，先问自己：旧计划中哪一件值得被收尾？这会让你的聪明变成可积累的成果。',
+                '长期规划不是限制你，而是给你的创造力铺一条能跑远的路。'
+            ],
+            practice: '用 25 分钟完成一个最小行动，不优化、不重开、不扩展，只把它做完。'
+        },
+        INTJ: {
+            archetype: '高标准的长期规划者',
+            focus: ['完美主义', '情绪表达', '关系中的柔软度'],
+            advice: [
+                '你很擅长把未来拆成路径，但有些关系不是靠优化推进的，而是靠真实靠近。',
+                '当计划被打乱时，先不要急着重建控制感，给自己十分钟承认失望。',
+                '你的标准可以继续存在，但不必变成惩罚自己的工具。'
+            ],
+            practice: '每周主动表达一次“我其实也会不确定”，练习让信任进入你的系统。'
+        },
+        INFP: {
+            archetype: '敏感而真诚的理想守护者',
+            focus: ['自我怀疑', '现实落地', '情绪波动'],
+            advice: [
+                '你的敏感不是问题，真正让你累的是你总想证明这份敏感合理。',
+                '理想不需要一次抵达。今天把它拆成一个很小、很具体、能完成的动作。',
+                '当你觉得自己不够好时，先别急着否定整个人生，只看今天有没有照顾好自己。'
+            ],
+            practice: '把一个大愿望写成三步，今天只完成第一步里最小的一件事。'
+        },
+        ENTJ: {
+            archetype: '目标清晰但容易过度紧绷的领航者',
+            focus: ['控制欲', '休息许可', '倾听他人'],
+            advice: [
+                '你可以继续强大，但不必把所有不确定都当成敌人。',
+                '真正成熟的领导力，不是永远给答案，而是允许别人也参与答案的形成。',
+                '休息不是效率的背面，它是你长期输出的基础设施。'
+            ],
+            practice: '今天把一件事交给别人完成，只提供边界，不接管过程。'
+        },
+        ENFP: {
+            archetype: '热情丰沛但需要收束能量的追梦人',
+            focus: ['能量管理', '承诺筛选', '持续行动'],
+            advice: [
+                '你不需要回应每一种可能性。真正适合你的机会，会经得起你慢一点选择。',
+                '热情来临时先别急着承诺，给自己一晚确认它是不是长期想要。',
+                '你的光很亮，但也需要灯罩，边界会让它照得更远。'
+            ],
+            practice: '本周只保留三个优先事项，其余想法先放进“以后再看”清单。'
+        }
+    };
+
+    if (groups[type]) return groups[type];
+
+    const fallback = {
+        I: ['情绪复原', '主动表达', '关系边界'],
+        E: ['能量节奏', '独处复盘', '冲动承诺'],
+        N: ['现实落地', '目标聚焦', '想法筛选'],
+        S: ['意义感连接', '变化适应', '长期视野'],
+        T: ['情绪识别', '温度表达', '关系修复'],
+        F: ['自我边界', '决策清晰', '减少内耗'],
+        J: ['弹性空间', '容错能力', '放松控制'],
+        P: ['执行闭环', '时间结构', '长期规划']
+    };
+    const letters = type.split('');
+    const focus = [...new Set(letters.flatMap((letter) => fallback[letter] || []))].slice(0, 3);
+    return {
+        archetype: type ? `${type} 型成长旅人` : '正在成形的成长旅人',
+        focus: focus.length ? focus : ['情绪觉察', '稳定行动', '自我理解'],
+        advice: [
+            '你不需要被一个标签定义，但人格线索可以帮你更早看见自己的惯性。',
+            '把今天的建议当成一盏小灯，不是命令，而是陪你多看清一点。',
+            '真正的成长不是改变成另一个人，而是更稳定地成为你自己。'
+        ],
+        practice: '今晚写下一个你想保留的自己，以及一个你想慢慢调整的惯性。'
+    };
+}
+
+function getZodiacMentorTone(zodiacSign = '') {
+    const sign = String(zodiacSign || '').toLowerCase();
+    const tones = {
+        aries: '你的行动力来得很快，导师会提醒你在冲出去之前先确认真正目标。',
+        taurus: '你需要稳定和安全感，导师会鼓励你慢慢改变，而不是逼自己突然翻篇。',
+        gemini: '你的心智很活跃，导师会帮你从信息噪音里筛出真正重要的声音。',
+        cancer: '你对情绪很敏锐，导师会提醒你照顾别人之前，先把自己抱稳。',
+        leo: '你有被看见的渴望，导师会帮你把自我表达和真实需求分清楚。',
+        virgo: '你习惯修正细节，导师会提醒你不要把人生变成永远不够好的项目。',
+        libra: '你重视关系和和谐，导师会陪你练习在不讨好中保持温柔。',
+        scorpio: '你感受很深，导师会帮你把强烈情绪转化为洞察，而不是自我消耗。',
+        sagittarius: '你需要远方和自由，导师会帮你把自由变成方向，而不是逃离。',
+        capricorn: '你很能扛，导师会提醒你不要只用成就证明自己值得被爱。',
+        aquarius: '你有独特视角，导师会帮你在保持独立的同时，也允许自己被连接。',
+        pisces: '你共感很强，导师会提醒你把想象力用于滋养自己，而不是吞下所有情绪。'
+    };
+    return tones[sign] || '星座还没有完整记录，导师会先以你的 MBTI 与情绪轨迹作为主要依据。';
+}
+
+async function buildAIMentor(userId, profile, growth) {
+    const recentEmotions = db.getAll(`
+        SELECT emotion_key, emotion_label, intensity, anxiety_level, note, created_at
+        FROM emotion_journal
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 8
+    `, [userId]);
+    const testHistory = db.getAll(`
+        SELECT test_type, result_code, result_name, source, created_at
+        FROM personality_test_history
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 5
+    `, [userId]);
+    const insightCount = db.getOne('SELECT COUNT(*) AS count FROM ai_companion_insights WHERE user_id = ?', [userId]).count;
+
+    try {
+        const aiResult = await generateMentor({
+            profile,
+            growth,
+            recentEmotions,
+            testHistory
+        });
+
+        if (aiResult) {
+            return {
+                title: `${profile?.mbti_type || '人格'} 长期成长导师`,
+                role: '人生导师 · 心理顾问 · 长期陪伴者',
+                archetype: profile?.mbti_type ? `${profile.mbti_type} 成长者` : '成长旅人',
+                focus_points: aiResult.focus_points,
+                mentor_message: aiResult.mentor_message,
+                personalized_advice: aiResult.personalized_advice,
+                practice: aiResult.practice,
+                long_term_direction: aiResult.long_term_direction,
+                memory_note: `已参考 ${recentEmotions.length} 条近期情绪记录、${testHistory.length} 条测试历史、${insightCount} 条 AI 洞察。`,
+                tone: '我不会用标准答案要求你。我会更像一个长期认识你的人，提醒你、陪你复盘，也在你忘记照顾自己的时候，把你轻轻拉回来。',
+                _ai_generated: true
+            };
+        }
+    } catch (e) {
+        console.warn('AI mentor generation failed, using template fallback:', e.message);
+    }
+
+    const mbtiGuide = getMBTIMentorFocus(profile?.mbti_type);
+    const zodiacTone = getZodiacMentorTone(profile?.zodiac_sign);
+    const emotionLabel = profile?.current_emotion_label || growth?.dominantEmotionLabel || '平静';
+    const anxiety = Number(profile?.anxiety_level ?? growth?.averageAnxiety ?? 0);
+    const testsCount = testHistory.length;
+    const dominant = growth?.dominantEmotionLabel || '平静';
+
+    const emotionalAdvice = anxiety >= 7
+        ? `最近你的压力信号偏高，我会先把"稳定身体"和"减少额外消耗"放在第一位。今天不要急着解决整个人生，先让自己从紧绷里下来。`
+        : anxiety >= 4
+            ? `你现在不是崩溃，而是有一些持续消耗需要被看见。与其硬撑，不如给情绪一个出口，再决定下一步。`
+            : `你目前的情绪底色相对平稳，适合做一些长期整理：复盘关系、目标和真正让你恢复能量的事。`;
+
+    const historyAdvice = testsCount > 1
+        ? `你已经留下 ${testsCount} 条近期测试记录，我会更关注那些反复出现的主题，而不是只根据一次结果判断你。`
+        : `测试历史还不多，所以我会把建议说得更轻一点：先观察你的模式，不急着给你下结论。`;
+
+    return {
+        title: `${profile?.mbti_type || '人格'} 长期成长导师`,
+        role: '人生导师 · 心理顾问 · 长期陪伴者',
+        archetype: mbtiGuide.archetype,
+        focus_points: mbtiGuide.focus,
+        mentor_message: `我会记住你不是一个静态标签。${profile?.mbti_type || '你的 MBTI'}、${profile?.zodiac_name || '你的星座'}、最近偏向${emotionLabel}的情绪，以及你留下的测试历史，会一起构成我理解你的方式。今天我更想提醒你：先照顾那个一直在努力维持状态的自己。`,
+        personalized_advice: [
+            mbtiGuide.advice[0],
+            emotionalAdvice,
+            zodiacTone,
+            historyAdvice
+        ],
+        practice: mbtiGuide.practice,
+        long_term_direction: `接下来一段时间，我会重点陪你看三件事：${mbtiGuide.focus.join('、')}。如果${dominant}反复出现，我们就不只安抚情绪，也一起追问它在保护什么、提醒什么。`,
+        memory_note: `已参考 ${recentEmotions.length} 条近期情绪记录、${testsCount} 条测试历史、${insightCount} 条 AI 洞察。`,
+        tone: '我不会用标准答案要求你。我会更像一个长期认识你的人，提醒你、陪你复盘，也在你忘记照顾自己的时候，把你轻轻拉回来。'
+    };
+}
+
 function buildGrowthArchive(userId) {
     const recentEmotions = db.getAll(`
         SELECT emotion_key, emotion_label, intensity, anxiety_level, created_at
@@ -296,7 +488,7 @@ function saveDailyMessage(userId, message) {
     ]);
 }
 
-router.get('/profile', authenticateToken, (req, res) => {
+router.get('/profile', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
         const profile = ensureProfile(userId);
@@ -342,6 +534,7 @@ router.get('/profile', authenticateToken, (req, res) => {
             },
             daily_message: dailyMessage,
             growth_archive: growth,
+            ai_mentor: await buildAIMentor(userId, profile, growth),
             recent_insights: recentInsights,
             emotion_scene: getEmotionScene(profile.current_emotion)
         });
@@ -464,7 +657,8 @@ router.post('/emotion', authenticateToken, (req, res) => {
             message: 'Emotion recorded',
             emotion: analyzed,
             emotion_scene: scene,
-            growth_archive: buildGrowthArchive(userId)
+            growth_archive: buildGrowthArchive(userId),
+            ai_mentor: buildAIMentor(userId, db.getOne('SELECT * FROM personality_profiles WHERE user_id = ?', [userId]), buildGrowthArchive(userId))
         });
     } catch (error) {
         console.error('Save emotion error:', error);

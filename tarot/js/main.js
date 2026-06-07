@@ -115,6 +115,7 @@ function initializeApp() {
 
     let currentMBTIPersonality = null;
     let selectedMBTIMode = 'test';
+    let latestMBTIProfile = null;
 
     function syncCompanionProfile(companionData) {
         const profile = companionData?.profile;
@@ -177,15 +178,30 @@ function initializeApp() {
 
     // Start chat button
     const startChatBtn = document.getElementById('btn-start-chat');
+    const embeddedCompanion = document.getElementById('embedded-ai-companion');
+    const aiCompanionFrame = document.getElementById('ai-companion-frame');
+    const closeAiCompanionBtn = document.getElementById('btn-close-ai-companion');
     if (startChatBtn) {
         startChatBtn.addEventListener('click', () => {
-            if (!API.isLoggedIn()) {
-                uiManager.showMessage('请先登录后再进行对话占卜', 'warning');
-                setTimeout(() => uiManager.showAuthModal(), 500);
+            if (embeddedCompanion && aiCompanionFrame) {
+                if (!aiCompanionFrame.getAttribute('src')) {
+                    aiCompanionFrame.setAttribute('src', 'ai-companion.html');
+                }
+                embeddedCompanion.hidden = false;
+                embeddedCompanion.classList.add('active');
+                embeddedCompanion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                audioSystem.play('reveal');
                 return;
             }
             chatUI.start(false);
             audioSystem.play('reveal');
+        });
+    }
+
+    if (closeAiCompanionBtn && embeddedCompanion) {
+        closeAiCompanionBtn.addEventListener('click', () => {
+            embeddedCompanion.classList.remove('active');
+            embeddedCompanion.hidden = true;
         });
     }
 
@@ -441,7 +457,17 @@ function initializeApp() {
     if (btnBackMBTIHealing) {
         btnBackMBTIHealing.addEventListener('click', () => {
             mbtiHealing.stop();
-            uiManager.navigateTo('mbti');
+            uiManager.navigateTo(latestMBTIProfile ? 'mbti-profile' : 'mbti');
+        });
+    }
+
+    const btnEnterMBTIProfileHealing = document.getElementById('btn-enter-mbti-profile-healing');
+    if (btnEnterMBTIProfileHealing) {
+        btnEnterMBTIProfileHealing.addEventListener('click', () => {
+            if (!currentMBTIPersonality) return;
+            uiManager.navigateTo('mbti-healing');
+            document.getElementById('mbti-healing-subtitle').textContent = `${currentMBTIPersonality.type} - ${currentMBTIPersonality.name} 的专属空间`;
+            mbtiHealing.setPersonality(currentMBTIPersonality);
         });
     }
 
@@ -489,10 +515,150 @@ function initializeApp() {
         displayMBTIAnalysis(currentMBTIPersonality);
         
         setTimeout(() => {
-            uiManager.navigateTo('mbti-healing');
-            document.getElementById('mbti-healing-subtitle').textContent = `${currentMBTIPersonality.type} - ${currentMBTIPersonality.name} 的专属空间`;
-            mbtiHealing.setPersonality(currentMBTIPersonality);
+            latestMBTIProfile = createMBTIProfile(currentMBTIPersonality);
+            renderMBTIProfile(latestMBTIProfile);
+            uiManager.navigateTo('mbti-profile');
         }, 5000);
+    }
+
+    function createMBTIProfile(personality) {
+        const dims = personality.dimensions || {
+            EI: { score: 0.5, dominant: personality.type?.[0] || 'I' },
+            SN: { score: 0.5, dominant: personality.type?.[1] || 'N' },
+            TF: { score: 0.5, dominant: personality.type?.[2] || 'F' },
+            JP: { score: 0.5, dominant: personality.type?.[3] || 'J' }
+        };
+        const isIntrovert = dims.EI.dominant === 'I';
+        const isIntuitive = dims.SN.dominant === 'N';
+        const isFeeling = dims.TF.dominant === 'F';
+        const isJudging = dims.JP.dominant === 'J';
+        const confidence = Object.values(dims).reduce((sum, dim) => sum + Math.abs((dim.score || 0.5) - 0.5), 0) / 4;
+        const emotionScore = Math.min(96, Math.round(72 + confidence * 42 + (isFeeling ? 5 : 0)));
+        const zodiac = getCurrentZodiacName();
+        const keywords = [
+            ...(personality.strengths || []).slice(0, 3),
+            isIntrovert ? '内在宇宙' : '外放能量',
+            isIntuitive ? '未来感知' : '现实锚点',
+            isFeeling ? '情绪共振' : '理性校准'
+        ];
+        const uniqueKeywords = [...new Set(keywords)].slice(0, 7);
+        const social = isIntrovert ? '深度连接型' : '星群链接型';
+        const socialDesc = isIntrovert
+            ? '偏好少量、高质量、能触及内心的关系。'
+            : '在互动中获得能量，擅长快速点亮团队气氛。';
+        const decision = `${isIntuitive ? '直觉预判' : '现实验证'} + ${isFeeling ? '价值共情' : '逻辑推演'}`;
+        const decisionDesc = isFeeling
+            ? '会把人的感受、关系温度与长期意义放进判断过程。'
+            : '倾向先拆解事实结构，再选择效率更高的行动路径。';
+        const growthTitle = isJudging ? '拥抱弹性' : '稳定落地';
+        const growth = personality.portrait?.growth || personality.healing || '把天赋转化成稳定行动，在关系、目标和自我照顾之间建立新的平衡。';
+        const summary = `${personality.type}「${personality.name}」像${personality.element || '一束星光'}一样拥有鲜明的精神底色。你的优势在于${(personality.strengths || uniqueKeywords).slice(0, 2).join('、')}；当你把${growthTitle}作为下一阶段任务，会更容易把内在天赋转化成稳定的现实力量。`;
+
+        return {
+            type: personality.type,
+            name: personality.name,
+            title: personality.title,
+            color: personality.color,
+            zodiac,
+            keywords: uniqueKeywords,
+            emotionScore,
+            social,
+            socialDesc,
+            decision,
+            decisionDesc,
+            growthTitle,
+            growth,
+            badge: `${personality.element || '星尘'} · ${personality.title}`,
+            summary,
+            timeline: [
+                { time: '01 / 测试完成', title: '人格核心定位', text: `识别为 ${personality.type} ${personality.name}，主能量来自${personality.element || '深空星轨'}。` },
+                { time: '02 / 星座并入', title: '星轨信息同步', text: `${zodiac} 已写入档案，用于后续情绪与关系画像。` },
+                { time: '03 / AI画像生成', title: '关键词归档', text: `${uniqueKeywords.slice(0, 4).join('、')}成为本次画像的核心标签。` },
+                { time: '04 / 成长任务', title: growthTitle, text: compactMBTIText(growth, 48) }
+            ]
+        };
+    }
+
+    function renderMBTIProfile(profile) {
+        setMBTIProfileText('avatar', profile.type.slice(0, 2));
+        setMBTIProfileText('name', profile.name);
+        setMBTIProfileText('level', `LV. ${24 + profile.type.charCodeAt(0) % 12}`);
+        setMBTIProfileText('badge', profile.badge);
+        setMBTIProfileText('emotion-score', profile.emotionScore);
+        setMBTIProfileText('social-score', profile.social.replace('型', ''));
+        setMBTIProfileText('type', profile.type);
+        setMBTIProfileText('type-name', profile.name);
+        setMBTIProfileText('zodiac', profile.zodiac);
+        setMBTIProfileText('emotion', `星云稳定 ${profile.emotionScore}%`);
+        setMBTIProfileText('social', profile.social);
+        setMBTIProfileText('social-desc', profile.socialDesc);
+        setMBTIProfileText('decision', profile.decision);
+        setMBTIProfileText('decision-desc', profile.decisionDesc);
+        setMBTIProfileText('growth-title', profile.growthTitle);
+        setMBTIProfileText('growth', compactMBTIText(profile.growth, 86));
+        setMBTIProfileText('ai-summary', profile.summary);
+
+        const avatar = document.getElementById('mbti-profile-avatar');
+        if (avatar) {
+            avatar.style.background = `radial-gradient(circle at 35% 25%, rgba(255,255,255,0.42), transparent 18%), linear-gradient(145deg, rgba(112,226,255,0.16), ${profile.color}, rgba(212,168,67,0.26))`;
+        }
+
+        const emotionBar = document.getElementById('mbti-profile-emotion-bar');
+        if (emotionBar) emotionBar.style.width = `${profile.emotionScore}%`;
+
+        const keywords = document.getElementById('mbti-profile-keywords');
+        if (keywords) {
+            keywords.innerHTML = profile.keywords.map(keyword => `<span>${keyword}</span>`).join('');
+        }
+
+        const timeline = document.getElementById('mbti-profile-timeline');
+        if (timeline) {
+            timeline.innerHTML = profile.timeline.map(item => `
+                <article class="timeline-item">
+                    <time>${item.time}</time>
+                    <h4>${item.title}</h4>
+                    <p>${item.text}</p>
+                </article>
+            `).join('');
+        }
+    }
+
+    function setMBTIProfileText(id, value) {
+        const element = document.getElementById(`mbti-profile-${id}`);
+        if (element) element.textContent = value;
+    }
+
+    function compactMBTIText(text, maxLength) {
+        if (!text || text.length <= maxLength) return text || '';
+        return `${text.slice(0, maxLength)}...`;
+    }
+
+    function getCurrentZodiacName() {
+        const zodiacSelect = document.getElementById('zodiac-select');
+        if (zodiacSelect?.value && window.ZodiacData) {
+            return ZodiacData.getSign(zodiacSelect.value)?.name || zodiacSelect.value;
+        }
+
+        const names = {
+            aries: '白羊座',
+            taurus: '金牛座',
+            gemini: '双子座',
+            cancer: '巨蟹座',
+            leo: '狮子座',
+            virgo: '处女座',
+            libra: '天秤座',
+            scorpio: '天蝎座',
+            sagittarius: '射手座',
+            capricorn: '摩羯座',
+            aquarius: '水瓶座',
+            pisces: '双鱼座'
+        };
+        const keys = ['zodiac_sign', 'zodiacSign', 'selectedZodiac', 'userZodiac'];
+        for (const key of keys) {
+            const value = localStorage.getItem(key);
+            if (value) return names[value] || value;
+        }
+        return '星座待记录';
     }
 
     // Display MBTI analysis

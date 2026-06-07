@@ -15,6 +15,8 @@ class ConversationalTarotReader {
         this.healingMode = false;
         this.lastEmotionAnalysis = null;
         this.useOracleMode = true;
+        this.onAsyncUpdate = null;
+        this.streamingUI = null;
 
         this.greetings = [
             "……你来了。在千年的沉默之后，预言者再次开口。星辰已为你排列好了位置，命运的织锦上，你的线早已与我的线交织。请坐，让我们开始这段跨越时空的对话。✦",
@@ -403,7 +405,7 @@ class ConversationalTarotReader {
     /**
      * Show interpretation
      */
-    showInterpretation() {
+    async showInterpretation() {
         this.state = 'interpreting';
 
         const cardData = this.drawnCards.map(card => ({
@@ -411,6 +413,34 @@ class ConversationalTarotReader {
             reversed: card.reversed
         }));
 
+        // Try AI for question-based readings — streaming first, then non-streaming
+        if (this.question) {
+            const theme = (AIInterpreter?.questionThemes?.[
+                AIInterpreter?.analyzeQuestion?.(this.question)?.theme || 'general'
+            ]) || { label: '综合运势', icon: '❓' };
+            this.addMessage('tarot', this.question, 'question_display', {
+                theme: theme.label,
+                icon: theme.icon
+            });
+
+            // Streaming
+            const fullText = await this.streamAIAgent('interpretation');
+            if (fullText) {
+                setTimeout(() => this.showFollowUp(), fullText.length * 30 + 2000);
+                return;
+            }
+
+            // Non-streaming fallback
+            const aiReply = await this.callAIAgent('interpretation');
+            if (aiReply) {
+                this.addMessage('tarot', aiReply, 'text');
+                if (this.onAsyncUpdate) this.onAsyncUpdate();
+                setTimeout(() => this.showFollowUp(), aiReply.length * 30 + 2000);
+                return;
+            }
+        }
+
+        // Fallback to existing template logic
         let aiResult;
         if (this.question) {
             if (this.useOracleMode && typeof OracleProphet !== 'undefined') {
@@ -453,6 +483,9 @@ class ConversationalTarotReader {
         parts.forEach((part, index) => {
             setTimeout(() => {
                 this.addMessage('tarot', part.content, part.type, part.meta);
+                if (this.onAsyncUpdate && index === parts.length - 1) {
+                    this.onAsyncUpdate();
+                }
             }, delay);
             delay += 2000 + part.content.length * 10;
         });
@@ -460,8 +493,6 @@ class ConversationalTarotReader {
         setTimeout(() => {
             this.showFollowUp();
         }, delay + 1000);
-
-        return this.getMessages();
     }
 
     /**
@@ -638,12 +669,29 @@ class ConversationalTarotReader {
     /**
      * Handle follow-up question
      */
-    handleFollowUp(input) {
+    async handleFollowUp(input) {
         this.addMessage('user', input, 'text');
 
-        // Generate a follow-up response based on the question and cards
+        // Try streaming first
+        const fullText = await this.streamAIAgent('follow_up');
+        if (fullText) {
+            setTimeout(() => this.showFollowUp(), fullText.length * 30 + 2000);
+            return this.getMessages();
+        }
+
+        // Try non-streaming AI
+        const aiReply = await this.callAIAgent('follow_up');
+        if (aiReply) {
+            this.addMessage('tarot', aiReply, 'text');
+            if (this.onAsyncUpdate) this.onAsyncUpdate();
+            setTimeout(() => this.showFollowUp(), aiReply.length * 30 + 2000);
+            return this.getMessages();
+        }
+
+        // Fallback to template
         const response = this.generateFollowUpResponse(input);
         this.addMessage('tarot', response, 'text');
+        if (this.onAsyncUpdate) this.onAsyncUpdate();
 
         setTimeout(() => {
             this.showFollowUp();
@@ -731,6 +779,94 @@ class ConversationalTarotReader {
      */
     getLastMessage() {
         return this.conversationHistory[this.conversationHistory.length - 1] || null;
+    }
+
+    /**
+     * Call AI agent for interpretation / follow-up / healing
+     */
+    async callAIAgent(mode = 'interpretation') {
+        if (!window.API?.agent?.chat) return null;
+
+        const history = this.conversationHistory
+            .slice(-12)
+            .map(msg => ({
+                role: msg.sender === 'tarot' ? 'assistant' : 'user',
+                content: msg.content
+            }))
+            .filter(msg => msg.content);
+
+        const context = {
+            question: this.question,
+            spreadType: this.spreadType,
+            cards: this.drawnCards.map(c => ({ name: c.name, reversed: c.reversed, meaning: c.meaning }))
+        };
+
+        try {
+            const data = await API.agent.chat({
+                message: mode === 'interpretation' ? this.question : this.conversationHistory.findLast(m => m.sender === 'user')?.content || '',
+                history,
+                cards: context.cards,
+                mode,
+                context
+            });
+
+            if (data.warning) {
+                console.warn('AI agent info:', data.warning);
+            }
+
+            return data.reply || null;
+        } catch (err) {
+            console.error('AI agent call failed:', err);
+            return null;
+        }
+    }
+
+    /**
+     * Stream AI response via SSE
+     * @returns {Promise<string|null>} full text or null if failed
+     */
+    streamAIAgent(mode = 'interpretation') {
+        if (!window.API?.agent?.chatStream) return Promise.resolve(null);
+
+        const history = this.conversationHistory
+            .slice(-12)
+            .map(msg => ({
+                role: msg.sender === 'tarot' ? 'assistant' : 'user',
+                content: msg.content
+            }))
+            .filter(msg => msg.content);
+
+        const context = {
+            question: this.question,
+            spreadType: this.spreadType,
+            cards: this.drawnCards.map(c => ({ name: c.name, reversed: c.reversed, meaning: c.meaning }))
+        };
+
+        const message = mode === 'interpretation'
+            ? this.question
+            : [...this.conversationHistory].reverse().find(m => m.sender === 'user')?.content || '';
+
+        return new Promise((resolve) => {
+            let fullText = '';
+            let updater = null;
+
+            API.agent.chatStream(
+                { message, history, cards: context.cards, mode, context },
+                (token) => {
+                    if (!updater && this.streamingUI) {
+                        updater = this.streamingUI.createStreamingMessage('tarot', 'text', {});
+                    }
+                    fullText += token;
+                    if (updater) updater.update(fullText);
+                },
+                () => {
+                    if (updater) updater.finalize(fullText);
+                    this.addMessage('tarot', fullText, 'text');
+                    resolve(fullText || null);
+                },
+                () => resolve(null)
+            );
+        });
     }
 
     /**

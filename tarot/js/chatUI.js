@@ -12,6 +12,7 @@ class ChatUI {
         this.messagesContainer = null;
         this.inputArea = null;
         this.typingIndicator = null;
+        this.overlay = null;
 
         this.init();
     }
@@ -19,6 +20,13 @@ class ChatUI {
     init() {
         this.render();
         this.bindEvents();
+
+        if (this.reader) {
+            this.reader.onAsyncUpdate = () => {
+                this.renderMessages(this.reader.getMessages());
+            };
+            this.reader.streamingUI = this;
+        }
     }
 
     render() {
@@ -54,6 +62,7 @@ class ChatUI {
         this.messagesContainer = document.getElementById('chat-messages');
         this.inputArea = document.getElementById('chat-input-area');
         this.typingIndicator = document.getElementById('typing-indicator');
+        this.overlay = this.container.closest('.chat-overlay') || this.container;
     }
 
     bindEvents() {
@@ -63,7 +72,7 @@ class ChatUI {
 
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
-                this.container.classList.remove('active');
+                this.close();
             });
         }
 
@@ -82,6 +91,7 @@ class ChatUI {
      * Start conversation
      */
     start(healingMode = false) {
+        this.overlay.classList.add('active');
         this.container.classList.add('active');
         this.messagesContainer.innerHTML = '';
         this.messagesContainer.appendChild(this.typingIndicator);
@@ -176,18 +186,26 @@ class ChatUI {
                 break;
 
             case 'close':
-                this.container.classList.remove('active');
+                this.close();
                 break;
         }
+    }
+
+    /**
+     * Close conversation overlay
+     */
+    close() {
+        this.overlay.classList.remove('active');
+        this.container.classList.remove('active');
     }
 
     /**
      * Render all messages
      */
     renderMessages(messages) {
-        // Only render new messages
-        const existingCount = this.messagesContainer.querySelectorAll('.chat-message').length;
-        const newMessages = messages.slice(existingCount);
+        const normal = this.messagesContainer.querySelectorAll('.chat-message:not([data-streaming])').length;
+        const streaming = this.messagesContainer.querySelectorAll('.chat-message[data-streaming]').length;
+        const newMessages = messages.slice(normal + streaming);
 
         newMessages.forEach((msg, index) => {
             setTimeout(() => {
@@ -534,6 +552,42 @@ class ChatUI {
     clearQuickActions() {
         const actions = document.getElementById('chat-quick-actions');
         if (actions) actions.innerHTML = '';
+    }
+
+    /**
+     * Create a streaming message that updates in real-time
+     * @param {string} sender - 'tarot' | 'user'
+     * @param {string} type - message type (default 'text')
+     * @param {object} meta - metadata
+     * @returns {{ update: function(string), finalize: function(string) }}
+     */
+    createStreamingMessage(sender, type = 'text', meta = {}) {
+        const el = document.createElement('div');
+        el.className = `chat-message chat-message-${sender}`;
+        el.dataset.streaming = 'true';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'chat-bubble-content';
+        contentDiv.innerHTML = '<span class="streaming-cursor">|</span>';
+
+        bubble.appendChild(contentDiv);
+        el.appendChild(bubble);
+        this.messagesContainer.insertBefore(el, this.typingIndicator);
+        this.scrollToBottom();
+
+        return {
+            update: (text) => {
+                contentDiv.innerHTML = this.formatText(text) + '<span class="streaming-cursor">|</span>';
+                this.scrollToBottom();
+            },
+            finalize: (text) => {
+                contentDiv.innerHTML = this.formatText(text);
+                this.scrollToBottom();
+            }
+        };
     }
 
     /**

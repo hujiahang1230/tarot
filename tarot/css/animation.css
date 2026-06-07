@@ -899,7 +899,7 @@
 /* ===== Chat Page Styles ===== */
 
 .chat-page-container {
-    max-width: 600px;
+    max-width: 1200px;
     margin: 0 auto;
     text-align: center;
     padding: 4rem 2rem;
@@ -919,6 +919,48 @@
 .btn-start-chat {
     font-size: 1.1rem;
     padding: 1.25rem 3rem;
+}
+
+.embedded-ai-companion {
+    width: min(1180px, 94vw);
+    height: min(760px, 72vh);
+    margin: 2rem auto 0;
+    border: 1px solid rgba(212, 168, 67, 0.35);
+    border-radius: 24px;
+    overflow: hidden;
+    background: rgba(5, 5, 18, 0.86);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45), 0 0 40px rgba(212, 168, 67, 0.14);
+}
+
+.embedded-ai-companion.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.embedded-ai-companion-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: var(--gold-light);
+    background: rgba(12, 10, 32, 0.95);
+    border-bottom: 1px solid rgba(212, 168, 67, 0.25);
+}
+
+.embedded-ai-companion-toolbar button {
+    border: 1px solid rgba(212, 168, 67, 0.45);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    color: var(--gold-light);
+    background: rgba(212, 168, 67, 0.08);
+    cursor: pointer;
+}
+
+#ai-companion-frame {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: #050512;
 }
 
 /* ===== Healing UI Styles ===== */
@@ -1432,6 +1474,18 @@
 .chat-bubble-content {
     font-size: 0.9rem;
     white-space: pre-wrap;
+}
+
+.streaming-cursor {
+    display: inline-block;
+    animation: blink-cursor 0.8s step-end infinite;
+    color: var(--gold-primary, #d4a843);
+    font-weight: bold;
+}
+
+@keyframes blink-cursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
 }
 
 /* Question Display */
